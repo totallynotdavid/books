@@ -9,7 +9,7 @@
     "ignoreUnknown": false
   },
   "formatter": {
-    "enabled": true,
+    "enabled": false,
     "indentStyle": "space",
     "indentWidth": 2
   },
