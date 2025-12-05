@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import type { Cheerio, CheerioAPI } from "cheerio";
+import type { Element } from "domhandler";
 import { type } from "arktype";
 import { BookSchema } from "../types.ts";
 import type { Book } from "../types.ts";
@@ -35,7 +36,7 @@ export function parseSearchResults(html: string, limit?: number): Book[] {
   return limit ? books.slice(0, limit) : books;
 }
 
-function parseBookElement($: CheerioAPI, $element: Cheerio): Partial<Book> | null {
+function parseBookElement(_$: CheerioAPI, $element: Cheerio<Element>): Partial<Book> | null {
   const id = extractId($element);
   if (!id) return null;
 
@@ -58,7 +59,7 @@ function parseBookElement($: CheerioAPI, $element: Cheerio): Partial<Book> | nul
   };
 }
 
-function extractId($element: Cheerio): string | null {
+function extractId($element: Cheerio<Element>): string | null {
   const href = $element.find("a[href*='/md5/']").first().attr("href");
   if (!href) return null;
 
@@ -66,12 +67,12 @@ function extractId($element: Cheerio): string | null {
   return parts[parts.length - 1] || null;
 }
 
-function extractTitle($element: Cheerio): string | null {
+function extractTitle($element: Cheerio<Element>): string | null {
   const title = $element.find("a").eq(1).text().trim();
   return title || null;
 }
 
-function extractAuthors($element: Cheerio): string[] {
+function extractAuthors($element: Cheerio<Element>): string[] {
   const authorText = $element
     .find("a[href*='/search?q=']")
     .first()
@@ -82,13 +83,13 @@ function extractAuthors($element: Cheerio): string[] {
 
   return authorText
     .split(/[;,]/)
-    .map((author) => author.trim())
-    .filter((author) => author.length > 0);
+    .map((author: string) => author.trim())
+    .filter((author: string) => author.length > 0);
 }
 
-function extractMetadata($element: Cheerio) {
+function extractMetadata($element: Cheerio<Element>) {
   const metadataText = $element.find(".text-gray-800").text();
-  const parts = metadataText.split(" · ").map((part) => part.trim());
+  const parts = metadataText.split(" · ").map((part: string) => part.trim());
 
   const rawFileType = parts[1] || "";
   const fileType = rawFileType.replace(/\s*\[.*?\]\s*/g, "").trim();

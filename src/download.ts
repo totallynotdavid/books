@@ -34,13 +34,13 @@ export async function getDownloadUrls(bookId: string): Promise<DownloadUrls> {
 }
 
 function extractIpfsCid(data: Record<string, unknown>): string | null {
-  if (Array.isArray(data.ipfs_cids) && data.ipfs_cids.length > 0) {
-    const cid = data.ipfs_cids[0];
+  if (Array.isArray(data["ipfs_cids"]) && data["ipfs_cids"].length > 0) {
+    const cid = data["ipfs_cids"][0];
     return typeof cid === "string" ? cid : null;
   }
 
-  if (typeof data.ipfs === "string") {
-    return data.ipfs;
+  if (typeof data["ipfs"] === "string") {
+    return data["ipfs"];
   }
 
   return null;
@@ -67,5 +67,5 @@ async function fetchJson(url: string): Promise<Record<string, unknown>> {
     throw createNetworkError(response.status, url);
   }
 
-  return response.json();
+  return response.json() as Promise<Record<string, unknown>>;
 }

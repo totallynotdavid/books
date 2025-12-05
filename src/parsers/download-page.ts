@@ -14,7 +14,7 @@ export function parseLibgenMirrors(html: string): string[] {
     });
 
     return mirrors;
-  } catch (err) {
+  } catch (_err) {
     throw createParseError("Failed to parse download page");
   }
 }
