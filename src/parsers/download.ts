@@ -24,13 +24,11 @@ export function extractIpfsCidFromMetadata(data: unknown): string | null {
 
   const record = data as Record<string, unknown>;
 
-  // Try ipfs_cids array first
   if (Array.isArray(record["ipfs_cids"]) && record["ipfs_cids"].length > 0) {
     const cid = record["ipfs_cids"][0];
     return typeof cid === "string" ? cid : null;
   }
 
-  // Try ipfs string field
   if (typeof record["ipfs"] === "string") {
     return record["ipfs"];
   }

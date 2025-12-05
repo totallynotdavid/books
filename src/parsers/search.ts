@@ -2,6 +2,7 @@ import { load } from "cheerio";
 import type { CheerioAPI, Cheerio } from "cheerio";
 import type { Element } from "domhandler";
 import type { Book } from "../types.ts";
+import { parseAuthors } from "./authors.ts";
 
 export function parseSearchResults(html: string): Book[] {
   const $ = load(html);
@@ -28,7 +29,8 @@ function parseBookElement(
     return null;
   }
 
-  const authors = extractAuthors($element);
+  const authorText = extractAuthorText($element);
+  const authors = parseAuthors(authorText);
   const metadata = extractMetadata($element);
   const thumbnail = $element.find("img").attr("src");
 
@@ -60,21 +62,12 @@ function extractTitle($element: Cheerio<Element>): string | null {
   return title || null;
 }
 
-function extractAuthors($element: Cheerio<Element>): string[] {
-  const authorText = $element
+function extractAuthorText($element: Cheerio<Element>): string {
+  return $element
     .find("a[href*='/search?q=']")
     .first()
     .text()
     .trim();
-
-  if (!authorText) {
-    return [];
-  }
-
-  return authorText
-    .split(/[;,]/)
-    .map((author) => author.trim())
-    .filter((author) => author.length > 0);
 }
 
 function extractMetadata($element: Cheerio<Element>) {
@@ -87,7 +80,14 @@ function extractMetadata($element: Cheerio<Element>) {
   const fileSize = parts[2] || "";
 
   const languageCode = extractLanguageCode(parts[0]);
-  const year = extractYear(parts[3]);
+
+  let year: number | undefined;
+  for (const part of parts) {
+    year = extractYear(part);
+    if (year !== undefined) {
+      break;
+    }
+  }
 
   return {
     fileType: fileType || undefined,
