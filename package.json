@@ -1,0 +1,43 @@
+{
+  "name": "@totallynotdavid/books",
+  "version": "0.0.1",
+  "description": "Download books. Simple as that.",
+  "keywords": [
+    "books",
+    "downloader",
+    "annas-archive",
+    "libgen"
+  ],
+  "license": "MIT",
+  "author": "David Duran <dadch1404@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/totallynotdavid/books.git"
+  },
+  "bugs": {
+    "url": "https://github.com/totallynotdavid/books/issues"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "readme.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "bun shx rm -rf dist",
+    "check": "biome check . && bun x prettier \"**/*.{md,yml}\" --write --print-width=80 --prose-wrap=always",
+    "build": "bun run check && bun x bunup",
+    "test": "bun test",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.3",
+    "@types/cheerio": "^1.0.0",
+    "shx": "^0.4.0"
+  }
+}
