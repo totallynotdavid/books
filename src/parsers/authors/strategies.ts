@@ -53,10 +53,6 @@ export const AndStrategy: AuthorSplitStrategy = {
   },
 };
 
-// Smart comma splitting with special case handling:
-// - "LastName, FirstName" (2 parts, 1-2 words each) ⇢ kept together
-// - "LastName, FirstName, Honorific" (3 parts, honorific pattern) ⇢ "Honorific FirstName LastName"
-// - "LastName, FirstName, Organization" (3 parts) ⇢ ["FirstName LastName", "Organization"]
 export const CommaStrategy: AuthorSplitStrategy = {
   name: "comma",
   detect: (text) => text.includes(","),
@@ -90,7 +86,6 @@ export const CommaStrategy: AuthorSplitStrategy = {
   },
 };
 
-// Fallback: no splitting
 export const SingleAuthorStrategy: AuthorSplitStrategy = {
   name: "single",
   detect: () => true,

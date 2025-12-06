@@ -3,7 +3,6 @@ export function isBibliographicTerm(text: string): boolean {
   return terms.includes(text);
 }
 
-// "SitePoint, 2018" ⇢ "SitePoint"
 export function cleanPublisherText(text: string): string {
   return text.replace(/,?\s*\d{4}.*$/, "").trim();
 }

@@ -8,7 +8,6 @@ export const removeParentheses: AuthorTransform = (text) => {
   return text.replace(/\s*\(.*?\)\s*/g, "").trim();
 };
 
-// Remove "By", "Illustrated By", and Russian role prefixes
 export const removePrefixes: AuthorTransform = (text) => {
   let cleaned = text;
   cleaned = cleaned.replace(/^(By|Illustrated\s+By)\s+/i, "");
@@ -34,7 +33,6 @@ export const expandAbbreviations: AuthorTransform = (text) => {
   return abbreviations[lowerText] || text;
 };
 
-// Remove trailing period only if last word is 3+ chars (preserves initials)
 export const removeTrailingPeriod: AuthorTransform = (text) => {
   return text.replace(/([a-zа-яёA-ZА-ЯЁ]{3,})\.\s*$/i, "$1");
 };
@@ -51,7 +49,6 @@ export const reverseLastNameFirst: AuthorTransform = (text) => {
   return `${firstName.trim()} ${lastName.trim()}`;
 };
 
-// Capitalize while preserving URLs and initials with periods
 export const capitalizeWords: AuthorTransform = (text) => {
   if (/^https?:\/\//i.test(text)) return text;
 
