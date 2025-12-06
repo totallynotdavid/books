@@ -57,7 +57,9 @@ export const capitalizeWords: AuthorTransform = (text) => {
     .map((word) => {
       if (!word || word.includes(".")) return word;
       // Capitalize first char and after apostrophes/hyphens, lowercase the rest
-      return word.toLowerCase().replace(/(^|['-])(.)/g, (_, p, c) => p + c.toUpperCase());
+      return word
+        .toLowerCase()
+        .replace(/(^|['-])(.)/g, (_, p, c) => p + c.toUpperCase());
     })
     .join(" ");
 };
