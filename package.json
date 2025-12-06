@@ -28,7 +28,7 @@
   "scripts": {
     "clean": "bun shx rm -rf dist",
     "check": "biome check . && bun x prettier \"**/*.{md,yml}\" --write --print-width=80 --prose-wrap=always",
-    "build": "bun run check && bun x bunup",
+    "build": "bun run check && bun x bunup --minify",
     "test": "bun test",
     "prepublishOnly": "bun run clean && bun run build"
   },
