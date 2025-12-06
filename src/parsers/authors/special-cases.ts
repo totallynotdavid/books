@@ -12,7 +12,7 @@ export function applyPublisherFallback(authors: string[], publisherFallback?: st
   if (authors.length === 0) return authors;
   if (!publisherFallback?.trim()) return authors;
 
-  if (isBibliographicTerm(authors[0]!)) {
+  if (authors[0] && isBibliographicTerm(authors[0])) {
     const cleanPublisher = cleanPublisherText(publisherFallback);
     return cleanPublisher ? [cleanPublisher] : authors;
   }
