@@ -2,7 +2,7 @@ import { fetchHtml } from "./http.ts";
 import { parseSearchResults } from "./parsers/search.ts";
 import type { Book } from "./types.ts";
 
-const ANNAS_ARCHIVE_BASE = "https://annas-archive.li";
+const ANNAS_ARCHIVE_BASE = "https://annas-archive.gd";
 
 export async function searchBooks(query: string): Promise<Book[]> {
   if (!query?.trim()) {
