@@ -6,6 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
+    "includes": ["**", "!**/tests/fixtures"],
     "ignoreUnknown": false
   },
   "formatter": {
