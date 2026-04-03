@@ -35,16 +35,19 @@ function parseBookElement(
   const metadata = extractMetadata($element);
   const thumbnail = $element.find("img").attr("src");
 
-  return {
+  const book: Book = {
     id,
     title,
     authors,
-    fileType: metadata.fileType,
-    fileSize: metadata.fileSize,
-    year: metadata.year,
-    language: metadata.language,
-    thumbnail: thumbnail || undefined,
   };
+
+  if (metadata.fileType !== undefined) book.fileType = metadata.fileType;
+  if (metadata.fileSize !== undefined) book.fileSize = metadata.fileSize;
+  if (metadata.year !== undefined) book.year = metadata.year;
+  if (metadata.language !== undefined) book.language = metadata.language;
+  if (thumbnail) book.thumbnail = thumbnail;
+
+  return book;
 }
 
 function extractBookId($element: Cheerio<Element>): string | null {
