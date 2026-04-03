@@ -1,9 +1,12 @@
 export class AnnasArchiveError extends Error {
+  public readonly statusCode: number;
+
   constructor(
     message: string,
-    public readonly statusCode: number,
+    statusCode: number,
   ) {
     super(message);
     this.name = "AnnasArchiveError";
+    this.statusCode = statusCode;
   }
 }
