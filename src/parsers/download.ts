@@ -1,23 +1,15 @@
 import { load } from "cheerio";
 
-const LIBGEN_BASE = "https://libgen.li";
-
 export function parseIpfsUrl(html: string): string | null {
   const $ = load(html);
-  const ipfsLink = $('a[title*="IPFS"] span.badge:contains("IPFS.io")').parent().attr("href");
+  const ipfsLink = $('a[title="IPFS.io"]').attr("href");
   return ipfsLink || null;
 }
 
-export function parseAdsPhpUrl(html: string): string | null {
-  const $ = load(html);
-  const adsLink = $('a[href*="ads.php"]').attr("href");
-  if (!adsLink) return null;
-  return adsLink.startsWith("http") ? adsLink : `${LIBGEN_BASE}${adsLink}`;
-}
-
-export function parseGetPhpUrl(html: string): string | null {
+/** Resolves the get.php link on an ads.php page against that page's URL. */
+export function parseGetPhpUrl(html: string, pageUrl: string): string | null {
   const $ = load(html);
   const getLink = $('a[href*="get.php"]').attr("href");
   if (!getLink) return null;
-  return getLink.startsWith("http") ? getLink : `${LIBGEN_BASE}/${getLink}`;
+  return new URL(getLink, pageUrl).href;
 }
