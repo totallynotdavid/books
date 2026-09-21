@@ -187,3 +187,14 @@ describe("parseAuthors - edge cases", () => {
     expect(parseAuthors("Müller, Franz")).toEqual(["Franz Müller"]);
   });
 });
+
+describe("parseAuthors - capitalization", () => {
+  it("keeps deliberate mixed case", () => {
+    expect(parseAuthors("Willis E. McNelly")).toEqual(["Willis E. McNelly"]);
+    expect(parseAuthors("DeVito, Danny")).toEqual(["Danny DeVito"]);
+  });
+
+  it("normalizes single-case words", () => {
+    expect(parseAuthors("SMITH, JOHN")).toEqual(["John Smith"]);
+  });
+});

@@ -56,7 +56,11 @@ export const capitalizeWords: AuthorTransform = (text) => {
     .split(/\s+/)
     .map((word) => {
       if (!word || word.includes(".")) return word;
-      // Capitalize first char and after apostrophes/hyphens, lowercase the rest
+      // Mixed case is deliberate (McNelly, DeVito); only normalize words
+      // written in a single case.
+      if (word !== word.toLowerCase() && word !== word.toUpperCase()) {
+        return word;
+      }
       return word
         .toLowerCase()
         .replace(/(^|['-])(.)/g, (_, p, c) => p + c.toUpperCase());
