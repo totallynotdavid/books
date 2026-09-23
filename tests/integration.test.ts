@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import type { Mock } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AnnasArchiveError, getDownloadUrls, searchBooks } from "../src/index.ts";
+import { LibraryFetchError, getDownloadUrls, searchBooks } from "../src/index.ts";
 
 const fixture = (name: string) =>
   readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
@@ -70,23 +70,23 @@ describe("searchBooks", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("throws AnnasArchiveError with the HTTP status", async () => {
+  it("throws LibraryFetchError with the HTTP status", async () => {
     respond = () => new Response("unavailable", { status: 503 });
 
     const error = await searchBooks("dune").catch((err: unknown) => err);
-    expect(error).toBeInstanceOf(AnnasArchiveError);
-    expect((error as AnnasArchiveError).statusCode).toBe(503);
+    expect(error).toBeInstanceOf(LibraryFetchError);
+    expect((error as LibraryFetchError).statusCode).toBe(503);
   });
 
-  it("throws AnnasArchiveError with status 0 on network failure", async () => {
+  it("throws LibraryFetchError with status 0 on network failure", async () => {
     respond = () => {
       throw new TypeError("fetch failed");
     };
 
     const error = await searchBooks("dune").catch((err: unknown) => err);
-    expect(error).toBeInstanceOf(AnnasArchiveError);
-    expect((error as AnnasArchiveError).statusCode).toBe(0);
-    expect((error as AnnasArchiveError).message).toBe("fetch failed");
+    expect(error).toBeInstanceOf(LibraryFetchError);
+    expect((error as LibraryFetchError).statusCode).toBe(0);
+    expect((error as LibraryFetchError).message).toBe("fetch failed");
   });
 });
 
@@ -137,22 +137,22 @@ describe("getDownloadUrls", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("throws AnnasArchiveError with the HTTP status", async () => {
+  it("throws LibraryFetchError with the HTTP status", async () => {
     respond = () => new Response("forbidden", { status: 403 });
 
     const error = await getDownloadUrls(md5).catch((err: unknown) => err);
-    expect(error).toBeInstanceOf(AnnasArchiveError);
-    expect((error as AnnasArchiveError).statusCode).toBe(403);
+    expect(error).toBeInstanceOf(LibraryFetchError);
+    expect((error as LibraryFetchError).statusCode).toBe(403);
   });
 });
 
-describe("AnnasArchiveError", () => {
+describe("LibraryFetchError", () => {
   it("carries a message, name and status code", () => {
-    const error = new AnnasArchiveError("Test error", 404);
+    const error = new LibraryFetchError("Test error", 404);
 
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe("Test error");
     expect(error.statusCode).toBe(404);
-    expect(error.name).toBe("AnnasArchiveError");
+    expect(error.name).toBe("LibraryFetchError");
   });
 });
