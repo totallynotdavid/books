@@ -22,7 +22,7 @@ strategy pattern
 Conventions:
 
 - imports require .ts extension
-- AnnasArchiveError for HTTP failures (with statusCode), TypeError for invalid
+- LibraryFetchError for HTTP failures (with statusCode), TypeError for invalid
   input
 - parsers return null on missing element, never throw
 - Book optional fields use undefined not null

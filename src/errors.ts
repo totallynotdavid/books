@@ -1,4 +1,4 @@
-export class AnnasArchiveError extends Error {
+export class LibraryFetchError extends Error {
   public readonly statusCode: number;
 
   constructor(
@@ -6,7 +6,7 @@ export class AnnasArchiveError extends Error {
     statusCode: number,
   ) {
     super(message);
-    this.name = "AnnasArchiveError";
+    this.name = "LibraryFetchError";
     this.statusCode = statusCode;
   }
 }
