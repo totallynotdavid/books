@@ -38,9 +38,10 @@ Author parser (src/parsers/authors/):
 - special-cases.ts: bibliographic terms (Collection/Editor) replaced by
   publisher fallback
 
-Testing: fixtures in tests/fixtures/\*.html; load, parse, assert. Pattern:
-fixture⇢parser⇢typed object assertions
+Testing: fixtures in tests/fixtures/\*.html are saved libgen.li pages; load,
+parse, assert. Pattern: fixture⇢parser⇢typed object assertions. Tests never
+touch the network: tests/integration.test.ts replaces global fetch with fixtures
 
 Extend: new author format⇢strategies.ts+tests; new download
 source⇢parsers/download.ts+src/download.ts; new Book
-field⇢types.ts+parsers/search.ts extractMetadata()
+field⇢types.ts+parsers/search.ts parseRow()

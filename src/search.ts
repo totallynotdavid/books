@@ -1,16 +1,21 @@
-import { fetchHtml } from "./http.ts";
+import { fetchHtml, LIBGEN_BASE } from "./http.ts";
 import { parseSearchResults } from "./parsers/search.ts";
 import type { Book } from "./types.ts";
-
-const ANNAS_ARCHIVE_BASE = "https://annas-archive.gd";
 
 export async function searchBooks(query: string): Promise<Book[]> {
   if (!query?.trim()) {
     throw new TypeError("Query cannot be empty");
   }
 
-  const url = `${ANNAS_ARCHIVE_BASE}/search?q=${encodeURIComponent(query)}`;
-  const html = await fetchHtml(url);
+  // Title column, files view, LibGen (non-fiction/fiction) topic, 25 per page.
+  const params = new URLSearchParams({
+    req: query,
+    "columns[]": "t",
+    "objects[]": "f",
+    "topics[]": "l",
+    res: "25",
+  });
+  const html = await fetchHtml(`${LIBGEN_BASE}/index.php?${params}`);
 
   return parseSearchResults(html);
 }

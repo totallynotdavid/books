@@ -1,156 +1,156 @@
-import { describe, expect, it } from "bun:test";
-import { searchBooks, getDownloadUrls, AnnasArchiveError } from "../src/index.ts";
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import type { Mock } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { AnnasArchiveError, getDownloadUrls, searchBooks } from "../src/index.ts";
 
-describe("integration: searchBooks", () => {
-  it("returns array of books with required fields", async () => {
-    const books = await searchBooks("javascript");
+const fixture = (name: string) =>
+  readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
 
-    expect(books.length).toBeGreaterThan(0);
+const pages: Record<string, string> = {
+  "/index.php": fixture("libgen-search.html"),
+  "/file.php": fixture("libgen-file.html"),
+  "/ads.php": fixture("libgen-ads.html"),
+};
 
-    const book = books[0];
-    if (!book) return;
-    expect(book.id).toMatch(/^[a-f0-9]{32}$/);
-    expect(book.title.length).toBeGreaterThan(0);
-    expect(book.authors.length).toBeGreaterThan(0);
+let fetchMock: Mock<typeof fetch>;
+let respond: (url: URL) => Response;
 
-    for (const author of book.authors) {
-      expect(author.length).toBeGreaterThan(0);
-    }
-  }, 15_000);
+const requestedUrls = () =>
+  fetchMock.mock.calls.map(([input]) => new URL(String(input)));
 
-  it("returns empty array when no results found", async () => {
-    const books = await searchBooks("xyzabc123nonexistent987qwerty");
-    expect(books).toEqual([]);
-  }, 15_000);
+beforeEach(() => {
+  respond = (url) => {
+    const page = pages[url.pathname];
+    return page === undefined
+      ? new Response("not found", { status: 404 })
+      : new Response(page, { status: 200 });
+  };
+  fetchMock = spyOn(globalThis, "fetch").mockImplementation((async (
+    input: string | URL | Request,
+  ) => respond(new URL(String(input)))) as typeof fetch);
+});
 
-  it("throws TypeError on empty query", () => {
-    expect(searchBooks("")).rejects.toThrow(TypeError);
-    expect(searchBooks("  ")).rejects.toThrow(TypeError);
+afterEach(() => {
+  fetchMock.mockRestore();
+});
+
+describe("searchBooks", () => {
+  it("queries libgen.li by title and parses the results", async () => {
+    const books = await searchBooks("dune messiah");
+
+    const [url] = requestedUrls();
+    expect(url?.origin).toBe("https://libgen.li");
+    expect(url?.pathname).toBe("/index.php");
+    expect(url?.searchParams.get("req")).toBe("dune messiah");
+    expect(url?.searchParams.get("columns[]")).toBe("t");
+    expect(url?.searchParams.get("objects[]")).toBe("f");
+    expect(url?.searchParams.get("topics[]")).toBe("l");
+    expect(url?.searchParams.get("res")).toBe("25");
+
+    expect(books).toHaveLength(25);
+    expect(books[0]).toMatchObject({
+      id: "5ac0ff98513e82598e5396cc78732a4c",
+      title: "The Dune Encyclopedia",
+    });
   });
 
-  it("parses optional metadata fields correctly", async () => {
-    const books = await searchBooks("programming");
+  it("makes no request outside libgen.li", async () => {
+    await searchBooks("dune");
+    await getDownloadUrls("840e6f0826109b93b4355dadd04240ee");
 
-    expect(books.length).toBeGreaterThan(10);
-
-    const withYear = books.filter((b) => b.year !== undefined);
-    const withLanguage = books.filter((b) => b.language !== undefined);
-    const withFileType = books.filter((b) => b.fileType !== undefined);
-
-    expect(withYear.length).toBeGreaterThan(0);
-    expect(withLanguage.length).toBeGreaterThan(0);
-    expect(withFileType.length).toBeGreaterThan(0);
-
-    for (const book of books) {
-      expect(book.id).toMatch(/^[a-f0-9]{32}$/);
-      expect(book.title).toBeTruthy();
-      expect(book.authors.length).toBeGreaterThan(0);
-
-      if (book.language) {
-        expect(book.language).toMatch(/^[a-z]{2,3}$/);
-      }
-
-      if (book.year) {
-        expect(book.year).toBeGreaterThan(1900);
-        expect(book.year).toBeLessThan(2100);
-      }
+    for (const url of requestedUrls()) {
+      expect(url.hostname).toBe("libgen.li");
     }
-  }, 15_000);
-
-  it("never returns empty author arrays", async () => {
-    const books = await searchBooks("algorithms");
-
-    for (const book of books) {
-      expect(book.authors.length).toBeGreaterThan(0);
-
-      for (const author of book.authors) {
-        expect(author.length).toBeGreaterThan(0);
-      }
-    }
-  }, 15_000);
-});
-
-describe("integration: getDownloadUrls", () => {
-  it("returns DownloadUrls with at least one source", async () => {
-    const books = await searchBooks("javascript");
-    const bookId = books[0]?.id;
-    if (typeof bookId !== "string") throw new Error("bookId is not defined");
-
-    const urls = await getDownloadUrls(bookId);
-
-    const hasDownload = urls.ipfs || urls.libgenMirrors.length > 0;
-    expect(!!hasDownload).toBe(true);
-
-    if (urls.ipfs) {
-      expect(urls.ipfs).toMatch(/^https:\/\//);
-      expect(urls.ipfs).toContain("ipfs");
-    }
-
-    for (const mirror of urls.libgenMirrors) {
-      expect(mirror).toMatch(/^https:\/\//);
-      expect(mirror).toContain("libgen");
-    }
-  }, 30_000);
-
-  it("throws TypeError on empty bookId", () => {
-    expect(getDownloadUrls("")).rejects.toThrow(TypeError);
-    expect(getDownloadUrls("  ")).rejects.toThrow(TypeError);
   });
 
-  it("throws AnnasArchiveError on HTTP failures", async () => {
-    const invalidId = "00000000000000000000000000000000";
+  it("throws TypeError on an empty query", async () => {
+    await expect(searchBooks("")).rejects.toThrow(TypeError);
+    await expect(searchBooks("  ")).rejects.toThrow(TypeError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 
-    try {
-      await getDownloadUrls(invalidId);
-    } catch (error) {
-      expect(error).toBeInstanceOf(AnnasArchiveError);
-      if (error instanceof AnnasArchiveError) {
-        expect(error.statusCode).toBeGreaterThan(0);
-      }
-    }
-  }, 15_000);
+  it("throws AnnasArchiveError with the HTTP status", async () => {
+    respond = () => new Response("unavailable", { status: 503 });
+
+    const error = await searchBooks("dune").catch((err: unknown) => err);
+    expect(error).toBeInstanceOf(AnnasArchiveError);
+    expect((error as AnnasArchiveError).statusCode).toBe(503);
+  });
+
+  it("throws AnnasArchiveError with status 0 on network failure", async () => {
+    respond = () => {
+      throw new TypeError("fetch failed");
+    };
+
+    const error = await searchBooks("dune").catch((err: unknown) => err);
+    expect(error).toBeInstanceOf(AnnasArchiveError);
+    expect((error as AnnasArchiveError).statusCode).toBe(0);
+    expect((error as AnnasArchiveError).message).toBe("fetch failed");
+  });
 });
 
-describe("integration: end-to-end workflow", () => {
-  it("search ⇢ extract ID ⇢ get download URLs", async () => {
-    const books = await searchBooks("design patterns");
+describe("getDownloadUrls", () => {
+  const md5 = "840e6f0826109b93b4355dadd04240ee";
 
-    expect(books.length).toBeGreaterThan(0);
+  it("returns the IPFS link and the keyed get.php link", async () => {
+    const urls = await getDownloadUrls(md5);
 
-    const book = books[0];
-    if (!book) return;
-    expect(book.id).toMatch(/^[a-f0-9]{32}$/);
-    expect(book.title.length).toBeGreaterThan(0);
-    expect(book.authors.length).toBeGreaterThan(0);
+    expect(urls.ipfs).toStartWith("https://gateway.ipfs.io/ipfs/");
+    expect(urls.libgenMirrors).toEqual([
+      `https://libgen.li/get.php?md5=${md5}&key=LI8TUYAH2UR418AT`,
+    ]);
+    expect(requestedUrls().map((url) => url.href)).toContain(
+      `https://libgen.li/ads.php?md5=${md5}`,
+    );
+  });
 
-    const urls = await getDownloadUrls(book.id);
+  it("fetches a fresh key on every call", async () => {
+    let key = 0;
+    respond = (url) => {
+      if (url.pathname !== "/ads.php") return new Response("");
+      key += 1;
+      return new Response(`<a href="get.php?md5=${md5}&amp;key=K${key}">GET</a>`);
+    };
 
-    const hasDownload = urls.ipfs || urls.libgenMirrors.length > 0;
-    expect(!!hasDownload).toBe(true);
-  }, 15_000);
+    const first = await getDownloadUrls(md5);
+    const second = await getDownloadUrls(md5);
 
-  it("handles multiple books and download URL fetches", async () => {
-    const books = await searchBooks("python");
+    expect(first.libgenMirrors).toEqual([
+      `https://libgen.li/get.php?md5=${md5}&key=K1`,
+    ]);
+    expect(second.libgenMirrors).toEqual([
+      `https://libgen.li/get.php?md5=${md5}&key=K2`,
+    ]);
+  });
 
-    expect(books.length).toBeGreaterThan(3);
+  it("returns no sources when LibGen has no file for the id", async () => {
+    respond = () => new Response("<html><body>No file</body></html>");
 
-    const firstThree = books.slice(0, 3);
+    const urls = await getDownloadUrls("00000000000000000000000000000000");
+    expect(urls).toEqual({ libgenMirrors: [] });
+  });
 
-    for (const book of firstThree) {
-      const urls = await getDownloadUrls(book.id);
+  it("throws TypeError on an empty id", async () => {
+    await expect(getDownloadUrls("")).rejects.toThrow(TypeError);
+    await expect(getDownloadUrls("  ")).rejects.toThrow(TypeError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 
-      expect(urls).toBeDefined();
-      expect(urls.libgenMirrors).toBeInstanceOf(Array);
-    }
-  }, 30_000);
+  it("throws AnnasArchiveError with the HTTP status", async () => {
+    respond = () => new Response("forbidden", { status: 403 });
+
+    const error = await getDownloadUrls(md5).catch((err: unknown) => err);
+    expect(error).toBeInstanceOf(AnnasArchiveError);
+    expect((error as AnnasArchiveError).statusCode).toBe(403);
+  });
 });
 
-describe("integration: Error handling", () => {
-  it("AnnasArchiveError provides statusCode", () => {
+describe("AnnasArchiveError", () => {
+  it("carries a message, name and status code", () => {
     const error = new AnnasArchiveError("Test error", 404);
 
     expect(error).toBeInstanceOf(Error);
-    expect(error).toBeInstanceOf(AnnasArchiveError);
     expect(error.message).toBe("Test error");
     expect(error.statusCode).toBe(404);
     expect(error.name).toBe("AnnasArchiveError");
