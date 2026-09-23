@@ -1,4 +1,4 @@
-import { AnnasArchiveError } from "./errors.ts";
+import { LibraryFetchError } from "./errors.ts";
 
 export const LIBGEN_BASE = "https://libgen.li";
 
@@ -16,16 +16,16 @@ export async function fetchHtml(url: string): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new AnnasArchiveError(`HTTP ${response.status}`, response.status);
+      throw new LibraryFetchError(`HTTP ${response.status}`, response.status);
     }
 
     return await response.text();
   } catch (err) {
-    if (err instanceof AnnasArchiveError) {
+    if (err instanceof LibraryFetchError) {
       throw err;
     }
 
-    throw new AnnasArchiveError(
+    throw new LibraryFetchError(
       err instanceof Error ? err.message : "Network request failed",
       0,
     );

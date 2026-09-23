@@ -86,17 +86,16 @@ interface DownloadUrls {
 
 ### Error handling
 
-The package throws `AnnasArchiveError` on HTTP failures from LibGen. The name is
-kept from earlier versions, which searched Anna's Archive. The error includes a
-status code, or 0 when the request never got a response:
+The package throws `LibraryFetchError` on HTTP failures from LibGen. The error
+includes a status code, or 0 when the request never got a response:
 
 ```ts
-import { searchBooks, AnnasArchiveError } from "@totallynotdavid/books";
+import { searchBooks, LibraryFetchError } from "@totallynotdavid/books";
 
 try {
   const books = await searchBooks("query");
 } catch (error) {
-  if (error instanceof AnnasArchiveError) {
+  if (error instanceof LibraryFetchError) {
     console.log(error.statusCode);
   }
 }
