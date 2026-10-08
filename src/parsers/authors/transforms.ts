@@ -37,24 +37,46 @@ export const removeTrailingPeriod: AuthorTransform = (text) => {
   return text.replace(/([a-zа-яёA-ZА-ЯЁ]{3,})\.\s*$/i, "$1");
 };
 
+// Recognized third parts of "Last, First, X" that belong to the person's name.
+const NAME_SUFFIX = /^(?:jr|sr|ii|iii|iv|esq|phd|md)\.?$/i;
+const NAME_TITLE = /^(?:st|dr|prof|sir|rev|fr)\.?$/i;
+
+export function isNameSuffix(text: string): boolean {
+  return NAME_SUFFIX.test(text);
+}
+
+export function isNameTitle(text: string): boolean {
+  return NAME_TITLE.test(text);
+}
+
 export const reverseLastNameFirst: AuthorTransform = (text) => {
   if (!text.includes(",")) return text;
 
-  const parts = text.split(",");
-  if (parts.length !== 2) return text;
+  const parts = text.split(",").map((part) => part.trim());
+  if (parts.some((part) => !part)) return text;
 
-  const [lastName, firstName] = parts;
-  if (!lastName?.trim() || !firstName?.trim()) return text;
+  if (parts.length === 2) {
+    return `${parts[1]} ${parts[0]}`;
+  }
 
-  return `${firstName.trim()} ${lastName.trim()}`;
+  if (parts.length === 3) {
+    const [lastName, firstName, third = ""] = parts;
+    if (isNameSuffix(third)) return `${firstName} ${lastName} ${third}`;
+    if (isNameTitle(third)) return `${third} ${firstName} ${lastName}`;
+  }
+
+  return text;
 };
 
 export const capitalizeWords: AuthorTransform = (text) => {
   if (/^https?:\/\//i.test(text)) return text;
 
-  return text
-    .split(/\s+/)
-    .map((word) => {
+  const words = text.split(/\s+/);
+  return words
+    .map((word, index) => {
+      if (index > 0 && index === words.length - 1 && /^(?:ii|iii|iv)$/i.test(word)) {
+        return word.toUpperCase();
+      }
       if (!word || word.includes(".")) return word;
       // Mixed case is deliberate (McNelly, DeVito); only normalize words
       // written in a single case.

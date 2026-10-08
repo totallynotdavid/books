@@ -1,3 +1,4 @@
+import { isNameSuffix, isNameTitle } from "./transforms.ts";
 import type { AuthorSplitStrategy } from "./types.ts";
 
 // Split by semicolons: "Maurya, Rahul; Maurya, Rahul"
@@ -64,12 +65,8 @@ export const CommaStrategy: AuthorSplitStrategy = {
       const [lastName, firstName, third] = parts;
       if (!lastName || !firstName || !third) return parts;
 
-      const thirdWordCount = third.split(/\s+/).length;
-
-      // Honorific pattern: "St.", "Jr.", "III."
-      if (thirdWordCount <= 2 && /^[A-Z][a-z]{0,3}\.?$/.test(third)) {
-        return [`${third} ${firstName} ${lastName}`];
-      }
+      // Keep a recognized suffix or title with the person's name.
+      if (isNameSuffix(third) || isNameTitle(third)) return [text];
 
       // Organization pattern: "LastName, FirstName, Organization"
       return [`${firstName} ${lastName}`, third];
