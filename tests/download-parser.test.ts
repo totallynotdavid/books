@@ -52,4 +52,8 @@ describe("parseGetPhpUrl", () => {
   it("returns null when there is no link", () => {
     expect(parseGetPhpUrl("<div>No link</div>", adsUrl)).toBe(null);
   });
+
+  it("returns null when the href is not a valid URL", () => {
+    expect(parseGetPhpUrl('<a href="http://[bad/get.php">', adsUrl)).toBe(null);
+  });
 });

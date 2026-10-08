@@ -144,14 +144,60 @@ describe("parseAuthors - bibliographic terms", () => {
   it("keeps normal authors when publisher fallback provided", () => {
     expect(parseAuthors("John Doe", "SitePoint, 2018")).toEqual(["John Doe"]);
   });
+
+  it("keeps the real author next to a placeholder", () => {
+    expect(parseAuthors("Collection; Smith, John", "Penguin")).toEqual([
+      "Penguin",
+      "John Smith",
+    ]);
+    expect(parseAuthors("Smith, John; ed.", "Penguin, 2005")).toEqual([
+      "John Smith",
+      "Penguin",
+    ]);
+  });
+
+  it("names the publisher once for several placeholders", () => {
+    expect(parseAuthors("Editor; Compiler", "Penguin")).toEqual(["Penguin"]);
+  });
+
+  it("keeps repeated real authors", () => {
+    expect(parseAuthors("Smith, John; Smith, John", "Penguin")).toEqual([
+      "John Smith",
+      "John Smith",
+    ]);
+  });
+
+  it("keeps the placeholder when the publisher is blank", () => {
+    expect(parseAuthors("Collection; Smith, John", " ")).toEqual([
+      "Collection",
+      "John Smith",
+    ]);
+  });
 });
 
 describe("parseAuthors - honorifics and titles", () => {
-  it("handles 3-part tuple with honorific", () => {
+  it("puts a title before the name", () => {
     expect(parseAuthors("Chrysostom, John, St.")).toEqual([
       "St. John Chrysostom",
     ]);
-    expect(parseAuthors("King, Martin, Jr.")).toEqual(["Jr. Martin King"]);
+  });
+
+  it("puts a generational suffix after the name", () => {
+    expect(parseAuthors("King, Martin, Jr.")).toEqual(["Martin King Jr."]);
+    expect(parseAuthors("Smith, John, III.")).toEqual(["John Smith III"]);
+    expect(parseAuthors("Smith, John, iv")).toEqual(["John Smith IV"]);
+  });
+
+  it("keeps a suffix with its name between semicolons", () => {
+    expect(parseAuthors("Smith, John, III.; Doe, Jane")).toEqual([
+      "John Smith III",
+      "Jane Doe",
+    ]);
+  });
+
+  it("treats a short third part that is not a suffix as another author", () => {
+    expect(parseAuthors("Smith, John, Lee")).toEqual(["John Smith", "Lee"]);
+    expect(parseAuthors("Smith, John, Wu")).toEqual(["John Smith", "Wu"]);
   });
 
   it("handles 3-part tuple with organization", () => {

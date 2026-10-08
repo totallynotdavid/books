@@ -131,6 +131,15 @@ describe("getDownloadUrls", () => {
     expect(urls).toEqual({ libgenMirrors: [] });
   });
 
+  it("returns no mirror when the get.php link is malformed", async () => {
+    respond = (url) =>
+      url.pathname === "/ads.php"
+        ? new Response('<a href="http://[bad/get.php">GET</a>')
+        : new Response("");
+
+    expect(await getDownloadUrls(md5)).toEqual({ libgenMirrors: [] });
+  });
+
   it("throws TypeError on an empty id", async () => {
     await expect(getDownloadUrls("")).rejects.toThrow(TypeError);
     await expect(getDownloadUrls("  ")).rejects.toThrow(TypeError);

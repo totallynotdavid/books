@@ -50,9 +50,18 @@ describe("parseSearchResults on a real libgen.li page", () => {
     expect(books[14]?.authors).toEqual(["Brian Herbert", "Kevin J. Anderson"]);
   });
 
-  it("leaves out fields LibGen does not provide", () => {
+  it("sets only the fields of Book", () => {
+    const fields = [
+      "id",
+      "title",
+      "authors",
+      "fileType",
+      "fileSize",
+      "year",
+      "language",
+    ];
     for (const book of books) {
-      expect(book).not.toHaveProperty("thumbnail");
+      expect(fields).toEqual(expect.arrayContaining(Object.keys(book)));
     }
   });
 });
