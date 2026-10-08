@@ -1,45 +1,46 @@
-# [pkg]: @totallynotdavid/books
+# @totallynotdavid/books
 
 [![NPM Version](https://img.shields.io/npm/v/@totallynotdavid/books?logo=npm&logoColor=212121&label=version&labelColor=ffc44e&color=212121)](https://www.npmjs.com/package/@totallynotdavid/books)
 [![codecov](https://codecov.io/gh/totallynotdavid/books/graph/badge.svg?token=8OBBAZG8MN)](https://codecov.io/gh/totallynotdavid/books)
 
-Search [Library Genesis](https://libgen.li) by title and get download links.
+A TypeScript library for Node.js and Bun that searches
+[Library Genesis](https://libgen.li) by title and returns download links. It
+reads the HTML pages of libgen.li, so it needs network access to that site and
+no API key.
+
+## Get started
 
 ```sh
 npm install @totallynotdavid/books
 ```
 
-## Basic usage
-
-Search for books and get download URLs using the book's ID:
-
 ```ts
 import { searchBooks, getDownloadUrls } from "@totallynotdavid/books";
 
-const books = await searchBooks("the pragmatic programmer");
-console.log(books[0]);
+const [book] = await searchBooks("dune");
+if (!book) throw new Error("No results");
+console.log(book);
+
+const urls = await getDownloadUrls(book.id);
+console.log(urls);
 ```
+
+`searchBooks` resolves to an array of books. The values depend on what LibGen
+lists:
 
 ```js
 {
-  id: "0a1b2c3d4e5f60718293a4b5c6d7e8f9",
-  title: "The Pragmatic Programmer",
-  authors: ["David Thomas", "Andrew Hunt"],
+  id: "5ac0ff98513e82598e5396cc78732a4c",
+  title: "The Dune Encyclopedia",
+  authors: ["Frank Patrick Herbert", "Willis E. McNelly"],
   fileType: "pdf",
-  fileSize: "4 MB",
-  year: 2019,
+  fileSize: "10 MB",
+  year: 1984,
   language: "English"
 }
 ```
 
-The search returns up to 25 files per query. Each book's `id` is the file's MD5
-hash. LibGen does not provide thumbnails, so `thumbnail` is never set. Download
-URLs include an IPFS gateway link and a direct libgen.li link.
-
-```ts
-const urls = await getDownloadUrls(books[0].id);
-console.log(urls);
-```
+`getDownloadUrls` resolves to the links for one book:
 
 ```js
 {
@@ -48,55 +49,24 @@ console.log(urls);
 }
 ```
 
-## API reference
+## Features
 
-### searchBooks(query)
+- Search by title and read typed results.
+- Get the available IPFS gateway and libgen.li mirror links for a book.
+- Get the authors of a book as a list of strings.
+- Catch request failures as a `LibraryFetchError`.
 
-Search LibGen by title. Returns a promise resolving to an array of book objects:
+See the
+[API reference](https://github.com/totallynotdavid/books/blob/master/docs/api.md)
+for the contract of each function.
 
-```ts
-const books = await searchBooks("query");
+## Documentation
 
-interface Book {
-  id: string;
-  title: string;
-  authors: string[];
-  fileType?: string;
-  fileSize?: string;
-  year?: number;
-  language?: string;
-  thumbnail?: string;
-}
-```
+- [Manual](https://github.com/totallynotdavid/books/blob/master/docs/readme.md):
+  API reference, author parsing, and the code map.
+- [Contributing](https://github.com/totallynotdavid/books/blob/master/.github/contributing.md):
+  set up, check, and submit a change.
 
-### getDownloadUrls(bookId)
+## License
 
-Get download URLs for a book using its ID from the search results. The `get.php`
-link carries a key that expires, so each call fetches a new one; request the
-URLs right before downloading. Returns a promise resolving to download URLs:
-
-```ts
-const urls = await getDownloadUrls(books[0].id);
-
-interface DownloadUrls {
-  ipfs?: string;
-  libgenMirrors: string[];
-}
-```
-
-### Error handling
-
-The package throws `LibraryFetchError` on HTTP failures from LibGen. The error
-includes a status code, or 0 when the request never got a response:
-
-```ts
-import { searchBooks, LibraryFetchError } from "@totallynotdavid/books";
-
-try {
-  const books = await searchBooks("query");
-} catch (error) {
-  if (error instanceof LibraryFetchError) {
-    console.log(error.statusCode);
-  }
-}
-```
+[MIT](LICENSE)
