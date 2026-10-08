@@ -6,7 +6,6 @@ export interface Book {
   fileSize?: string;
   year?: number;
   language?: string;
-  thumbnail?: string;
 }
 
 export interface DownloadUrls {
