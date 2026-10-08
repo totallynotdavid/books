@@ -19,11 +19,17 @@ bun install
 
 ## Commands
 
-| Command         | Effect                                                                              |
-| --------------- | ----------------------------------------------------------------------------------- |
-| `bun test`      | Runs all tests.                                                                     |
-| `bun run check` | Lints with Biome, then formats every `.md` and `.yml` file with Prettier, in place. |
-| `bun run build` | Runs `check`, then bundles `src/index.ts` into `dist/` with bunup.                  |
+| Command         | Effect                                                                                                         |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `bun test`      | Runs all tests.                                                                                                |
+| `bun run check` | Lints with Biome, then checks that every `.md` and `.yml` file is formatted with Prettier. It changes no file. |
+| `bun run build` | Runs `check`, then bundles `src/index.ts` into `dist/` with bunup.                                             |
+
+When `check` reports an unformatted file, format the documents with:
+
+```sh
+bun x prettier "**/*.{md,yml}" --write --print-width=80 --prose-wrap=always
+```
 
 ## Tests
 

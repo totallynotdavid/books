@@ -41,20 +41,18 @@ interface Book {
   fileSize?: string;
   year?: number;
   language?: string;
-  thumbnail?: string;
 }
 ```
 
-| Field       | Meaning                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------- |
-| `id`        | The file's MD5 hash, 32 lowercase hex characters. Pass it to `getDownloadUrls`.                      |
-| `title`     | The title without the edition or volume note LibGen prints beside it.                                |
-| `authors`   | The names parsed from LibGen's author text. Empty when LibGen lists none. See [authors](authors.md). |
-| `fileType`  | The file extension, such as `pdf` or `epub`.                                                         |
-| `fileSize`  | The size as LibGen prints it, such as `3 MB`.                                                        |
-| `year`      | The first four-digit number in LibGen's year cell.                                                   |
-| `language`  | The language as LibGen prints it.                                                                    |
-| `thumbnail` | Never set. The results page has no cover images.                                                     |
+| Field      | Meaning                                                                                              |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| `id`       | The file's MD5 hash, 32 lowercase hex characters. Pass it to `getDownloadUrls`.                      |
+| `title`    | The title without the edition or volume note LibGen prints beside it.                                |
+| `authors`  | The names parsed from LibGen's author text. Empty when LibGen lists none. See [authors](authors.md). |
+| `fileType` | The file extension, such as `pdf` or `epub`.                                                         |
+| `fileSize` | The size as LibGen prints it, such as `3 MB`.                                                        |
+| `year`     | The first four-digit number in LibGen's year cell.                                                   |
+| `language` | The language as LibGen prints it.                                                                    |
 
 An optional field is absent, not `null` or empty, when LibGen has no value for
 it.
@@ -77,10 +75,10 @@ interface DownloadUrls {
 }
 ```
 
-| Field           | Meaning                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------- |
-| `ipfs`          | The IPFS.io gateway link from the file page. Absent when the page has none.             |
-| `libgenMirrors` | The `get.php` link from the ads page, as an absolute URL. Empty when the page has none. |
+| Field           | Meaning                                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `ipfs`          | The IPFS.io gateway link from the file page. Absent when the page has none.                                            |
+| `libgenMirrors` | The `get.php` link from the ads page, as an absolute URL. Empty when the page has none or the link is not a valid URL. |
 
 The `get.php` link carries a `key` that expires. Each call fetches a new one, so
 call `getDownloadUrls` right before the download starts and do not store the
@@ -88,10 +86,10 @@ result.
 
 ## Errors
 
-| Error               | Thrown when                                                                                                                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TypeError`         | An argument is empty. See [`searchBooks`](#searchbooksquery) and [`getDownloadUrls`](#getdownloadurlsbookid). `getDownloadUrls` also throws it when the ads page holds a `get.php` link that is not a valid URL. |
-| `LibraryFetchError` | A request fails: an HTTP error status, a network error, or a timeout.                                                                                                                                            |
+| Error               | Thrown when                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `TypeError`         | An argument is empty. See [`searchBooks`](#searchbooksquery) and [`getDownloadUrls`](#getdownloadurlsbookid). |
+| `LibraryFetchError` | A request fails: an HTTP error status, a network error, or a timeout.                                         |
 
 `LibraryFetchError` extends `Error` and adds `statusCode`. It is the HTTP status
 of the response, or `0` when no response arrived. Every request times out after

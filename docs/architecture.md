@@ -36,6 +36,7 @@ flowchart LR
   (`parsers/search.ts`, `parsers/download.ts`) take the HTML of a page and run
   against a saved one. The author parser takes the text of one authors cell.
 - `parseIpfsUrl` and `parseGetPhpUrl` return `null` when the page has no link.
+  `parseGetPhpUrl` also returns `null` when the link is not a valid URL.
   `parseRow` skips a row that has no id or no title.
 - Errors are specified in the [API reference](api.md#errors).
 - `search.ts` and `download.ts` choose the libgen.li page. The parsers know the

@@ -49,12 +49,14 @@ The `comma` strategy keeps a `Last, First` pair together and splits otherwise:
 
 - Two parts are kept as one name when the first has at most three words and the
   second at most two. The transforms then reverse it.
-- Three parts `Last, First, X`: when `X` is one word made of a capital letter,
-  up to three lowercase letters and an optional period, the result is the one
-  name `X First Last`. For any other `X` the result is two names, `First Last`
-  and `X`: `Smith, John, Penguin Press` gives `John Smith` and `Penguin Press`.
-  If a part is empty, the parts are split as written: `Smith, John,` gives
-  `Smith` and `John`.
+- Three parts `Last, First, X`: when `X` is a generational suffix (`Jr`, `Sr`,
+  `II`, `III`, `IV`, `Esq`, `PhD`, `MD`) or a title (`St`, `Dr`, `Prof`, `Sir`,
+  `Rev`, `Fr`), with or without a period and in any case, the string stays one
+  name and `reverseLastNameFirst` builds it. For any other `X` the result is two
+  names, `First Last` and `X`: `Smith, John, Penguin Press` gives `John Smith`
+  and `Penguin Press`, and `Smith, John, Lee` gives `John Smith` and `Lee`. If a
+  part is empty, the parts are split as written: `Smith, John,` gives `Smith`
+  and `John`.
 - All other shapes split on every comma.
 
 ## Transforms
@@ -62,15 +64,15 @@ The `comma` strategy keeps a `Last, First` pair together and splits otherwise:
 [`transforms.ts`](../src/parsers/authors/transforms.ts) lists the transforms in
 `ALL_TRANSFORMS`. Each takes a name and returns a name. They run in this order:
 
-| Transform              | Effect                                                                                                                                                           |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `removeBrackets`       | Removes `[...]` and the spaces around it.                                                                                                                        |
-| `removeParentheses`    | Removes `(...)` and the spaces around it.                                                                                                                        |
-| `removePrefixes`       | Removes a leading `By` or `Illustrated By`, and the Russian role prefixes `Составитель -`, `Русский Текст -` and `Иллюстрации -`.                                |
-| `expandAbbreviations`  | Replaces a name that is only `coll`, `ed`, `eds`, `comp` or `trans`, with or without a period, by `Collection`, `Editor`, `Editors`, `Compiler` or `Translator`. |
-| `removeTrailingPeriod` | Removes a period after a final word of three or more letters. `Smith Jr.` and initials such as `J.` keep it.                                                     |
-| `reverseLastNameFirst` | Turns `Last, First` into `First Last` when the name has exactly one comma with text on both sides.                                                               |
-| `capitalizeWords`      | Capitalizes words written in a single case (`JOHN`, `smith`, `o'brien`). Mixed-case words (`McNelly`), words with a period, and URLs stay as they are.           |
+| Transform              | Effect                                                                                                                                                                                                |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `removeBrackets`       | Removes `[...]` and the spaces around it.                                                                                                                                                             |
+| `removeParentheses`    | Removes `(...)` and the spaces around it.                                                                                                                                                             |
+| `removePrefixes`       | Removes a leading `By` or `Illustrated By`, and the Russian role prefixes `Составитель -`, `Русский Текст -` and `Иллюстрации -`.                                                                     |
+| `expandAbbreviations`  | Replaces a name that is only `coll`, `ed`, `eds`, `comp` or `trans`, with or without a period, by `Collection`, `Editor`, `Editors`, `Compiler` or `Translator`.                                      |
+| `removeTrailingPeriod` | Removes a period after a final word of three or more letters. `Smith Jr.` and initials such as `J.` keep it.                                                                                          |
+| `reverseLastNameFirst` | Turns `Last, First` into `First Last`. Turns `Last, First, Suffix` into `First Last Suffix` and `Last, First, Title` into `Title First Last`. Other shapes stay.                                      |
+| `capitalizeWords`      | Capitalizes words written in a single case (`JOHN`, `smith`, `o'brien`). Mixed-case words (`McNelly`), words with a period, and URLs stay as they are. A last word `II`, `III` or `IV` is uppercased. |
 
 The order matters. Brackets and prefixes go before abbreviations are expanded,
 and the trailing period goes before the name is reversed.
@@ -78,12 +80,14 @@ and the trailing period goes before the name is reversed.
 ## Publisher fallback
 
 [`special-cases.ts`](../src/parsers/authors/special-cases.ts) handles rows where
-LibGen puts a role in the author cell instead of a person. When the first parsed
-name is `Collection`, `Editor`, `Editors`, `Compiler` or `Translator`, and the
-row has a publisher, the whole author list is replaced by the publisher name.
-The publisher text is cut from its first four-digit number:
-`Penguin Books, 2005` becomes `Penguin Books`, and `Penguin 1984 Classics`
-becomes `Penguin`. A row without a publisher keeps the role.
+LibGen puts a role in the author cell instead of a person. When the row has a
+publisher, each parsed name that is `Collection`, `Editor`, `Editors`,
+`Compiler` or `Translator` is replaced by the publisher name, which appears
+once. Other names stay: `Collection; Smith, John` with publisher `Penguin` gives
+`Penguin` and `John Smith`. The publisher text is cut from its first four-digit
+number: `Penguin Books, 2005` becomes `Penguin Books`, and
+`Penguin 1984 Classics` becomes `Penguin`. A row without a publisher keeps the
+role.
 
 ## Add a name format
 
