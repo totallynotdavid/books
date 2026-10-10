@@ -56,10 +56,6 @@ lists:
 - Get the authors of a book as a list of strings.
 - Catch request failures as a `LibraryFetchError`.
 
-See the
-[API reference](https://github.com/totallynotdavid/books/blob/master/docs/api.md)
-for the contract of each function.
-
 ## Documentation
 
 - [Manual](https://github.com/totallynotdavid/books/blob/master/docs/readme.md):

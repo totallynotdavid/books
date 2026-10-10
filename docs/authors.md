@@ -1,6 +1,6 @@
 # Author parsing
 
-LibGen prints authors as free text in one table cell. The cell holds
+LibGen prints authors as free text in one table cell, such as
 `Maurya, Rahul; Maurya, Rahul`, `W. Richard Stevens & Stephen A. Rago`, or a
 single name in capitals. `parseAuthors` turns it into a list of names. The code
 is in [`src/parsers/authors/`](../src/parsers/authors/).
@@ -31,14 +31,14 @@ is priority.
 In the table, "the word `and`" means `and` with a space on each side, and `&`
 means `&` with a space on each side.
 
-| Strategy           | Used when the text                                                                                                                                           | Splits on                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
-| `semicolon`        | contains `;`                                                                                                                                                 | `;`                                               |
-| `period-delimited` | has neither the word `and` nor `&`, and has two or more words of three or more letters followed by a period and then a capital letter or the end of the text | the whitespace after a period that ends such word |
-| `comma-and`        | contains a comma and either `, and ` or `, & `                                                                                                               | commas, then the word `and` or `&` inside a piece |
-| `and`              | contains the word `and` or `&`                                                                                                                               | the word `and` or `&`                             |
-| `comma`            | contains `,`                                                                                                                                                 | commas, with the exceptions below                 |
-| `single`           | any other text                                                                                                                                               | nothing                                           |
+| Strategy           | Used when the text                                                                                                                                           | Splits on                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `semicolon`        | contains `;`                                                                                                                                                 | `;`                                                                                        |
+| `period-delimited` | has neither the word `and` nor `&`, and has two or more words of three or more letters followed by a period and then a capital letter or the end of the text | a period and the whitespace after it, when the period ends a word of three or more letters |
+| `comma-and`        | contains a comma and either `, and ` or `, & `                                                                                                               | commas, then the word `and` or `&` inside a piece                                          |
+| `and`              | contains the word `and` or `&`                                                                                                                               | the word `and` or `&`                                                                      |
+| `comma`            | contains `,`                                                                                                                                                 | commas, with the exceptions below                                                          |
+| `single`           | any other text                                                                                                                                               | nothing                                                                                    |
 
 Examples: `Составитель - Иванов. Иллюстрации - Петров.` is read by
 `period-delimited` as two names (`Иванов`, `Петров`) after the transforms. A
@@ -64,15 +64,15 @@ The `comma` strategy keeps a `Last, First` pair together and splits otherwise:
 [`transforms.ts`](../src/parsers/authors/transforms.ts) lists the transforms in
 `ALL_TRANSFORMS`. Each takes a name and returns a name. They run in this order:
 
-| Transform              | Effect                                                                                                                                                                                                |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `removeBrackets`       | Removes `[...]` and the spaces around it.                                                                                                                                                             |
-| `removeParentheses`    | Removes `(...)` and the spaces around it.                                                                                                                                                             |
-| `removePrefixes`       | Removes a leading `By` or `Illustrated By`, and the Russian role prefixes `Составитель -`, `Русский Текст -` and `Иллюстрации -`.                                                                     |
-| `expandAbbreviations`  | Replaces a name that is only `coll`, `ed`, `eds`, `comp` or `trans`, with or without a period, by `Collection`, `Editor`, `Editors`, `Compiler` or `Translator`.                                      |
-| `removeTrailingPeriod` | Removes a period after a final word of three or more letters. `Smith Jr.` and initials such as `J.` keep it.                                                                                          |
-| `reverseLastNameFirst` | Turns `Last, First` into `First Last`. Turns `Last, First, Suffix` into `First Last Suffix` and `Last, First, Title` into `Title First Last`. Other shapes stay.                                      |
-| `capitalizeWords`      | Capitalizes words written in a single case (`JOHN`, `smith`, `o'brien`). Mixed-case words (`McNelly`), words with a period, and URLs stay as they are. A last word `II`, `III` or `IV` is uppercased. |
+| Transform              | Effect                                                                                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `removeBrackets`       | Removes `[...]` and the spaces around it.                                                                                                                                                                                                        |
+| `removeParentheses`    | Removes `(...)` and the spaces around it.                                                                                                                                                                                                        |
+| `removePrefixes`       | Removes a leading `By` or `Illustrated By`, and the Russian role prefixes `Составитель -`, `Русский Текст -` and `Иллюстрации -`.                                                                                                                |
+| `expandAbbreviations`  | Replaces a name that is only `coll`, `ed`, `eds`, `comp` or `trans`, with or without a period, by `Collection`, `Editor`, `Editors`, `Compiler` or `Translator`.                                                                                 |
+| `removeTrailingPeriod` | Removes a period after a final word of three or more letters. `Smith Jr.` and initials such as `J.` keep it.                                                                                                                                     |
+| `reverseLastNameFirst` | Turns `Last, First` into `First Last`. Turns `Last, First, Suffix` into `First Last Suffix` and `Last, First, Title` into `Title First Last`. Other shapes stay.                                                                                 |
+| `capitalizeWords`      | Capitalizes words written in a single case (`JOHN`, `smith`, `o'brien`). Mixed-case words (`McNelly`), words with a period, and a name that starts with `http://` or `https://` stay as they are. A last word `II`, `III` or `IV` is uppercased. |
 
 The order matters. Brackets and prefixes go before abbreviations are expanded,
 and the trailing period goes before the name is reversed.

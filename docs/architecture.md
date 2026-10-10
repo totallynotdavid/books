@@ -30,17 +30,18 @@ flowchart LR
 
 ## Boundaries
 
-- `search.ts` and `download.ts` do input validation and orchestration. They
-  parse nothing themselves.
-- Parsers take a string and return data. They do no I/O. The page parsers
-  (`parsers/search.ts`, `parsers/download.ts`) take the HTML of a page and run
-  against a saved one. The author parser takes the text of one authors cell.
-- `parseIpfsUrl` and `parseGetPhpUrl` return `null` when the page has no link.
-  `parseGetPhpUrl` also returns `null` when the link is not a valid URL.
-  `parseRow` skips a row that has no id or no title.
+- `search.ts` and `download.ts` validate the input, choose the libgen.li page
+  and fetch it. They parse nothing themselves.
+- Parsers take strings and return data. They do no I/O and know the markup of
+  the page they read. The page parsers (`parsers/search.ts`,
+  `parsers/download.ts`) take the HTML of a page, so the tests run them against
+  saved pages. The author parser takes the text of the authors and publisher
+  cells of one row.
+- A page parser returns `null` for a link the page lacks. The orchestrators turn
+  missing links into the optional fields described in the
+  [API reference](api.md).
+- `parseSearchResults` skips a row with no id or no title.
 - Errors are specified in the [API reference](api.md#errors).
-- `search.ts` and `download.ts` choose the libgen.li page. The parsers know the
-  markup of that page.
 
 ## Coupling to libgen.li
 

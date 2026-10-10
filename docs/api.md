@@ -19,10 +19,9 @@ import {
 function searchBooks(query: string): Promise<Book[]>;
 ```
 
-Searches the title column of libgen.li and returns the matching files. One
-request fetches one page of 25 results, so the array holds at most 25 books. The
-array is empty when nothing matches. A file listed twice in the results appears
-once.
+Searches the title column of libgen.li and returns the matching files. It
+requests the first page of 25 results and fetches no other page. The array is
+empty when nothing matches. A file listed twice in the results appears once.
 
 `query` must contain a non-whitespace character. Otherwise the promise rejects
 with a `TypeError` and no request is sent.
@@ -92,8 +91,9 @@ result.
 | `LibraryFetchError` | A request fails: an HTTP error status, a network error, or a timeout.                                         |
 
 `LibraryFetchError` extends `Error` and adds `statusCode`. It is the HTTP status
-of the response, or `0` when no response arrived. Every request times out after
-30 seconds. The shared request code is in [`src/http.ts`](../src/http.ts).
+of an error response, or `0` for a network error or a timeout. Every request,
+including the read of the response body, times out after 30 seconds. The shared
+request code is in [`src/http.ts`](../src/http.ts).
 
 ```ts
 import { searchBooks, LibraryFetchError } from "@totallynotdavid/books";

@@ -34,11 +34,11 @@ bun x prettier "**/*.{md,yml}" --write --print-width=80 --prose-wrap=always
 ## Tests
 
 Tests never touch the network. [`tests/fixtures/`](../tests/fixtures/) holds
-pages saved from libgen.li. The search and download parser tests load a fixture,
-parse it, and assert on the typed result. The author parser tests pass strings.
-[`tests/integration.test.ts`](../tests/integration.test.ts) replaces the global
-`fetch` with a function that serves the fixtures, so it runs `searchBooks` and
-`getDownloadUrls` end to end.
+pages saved from libgen.li. The search and download parser tests parse a fixture
+or a short HTML string and assert on the typed result. The author parser tests
+pass strings. [`tests/integration.test.ts`](../tests/integration.test.ts)
+replaces the global `fetch` with a function that serves the fixtures, so it runs
+`searchBooks` and `getDownloadUrls` end to end.
 
 ## Common changes
 
