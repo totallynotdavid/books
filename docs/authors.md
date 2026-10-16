@@ -25,27 +25,26 @@ package.
 ## Split strategies
 
 [`strategies.ts`](../src/parsers/authors/strategies.ts) lists the strategies in
-`ALL_STRATEGIES`. The first whose `detect` returns true splits the string. Order
-is priority.
+`STRATEGIES`. The first whose `detect` returns true splits the string. Order is
+priority. A string no strategy detects is one name.
 
 In the table, "the word `and`" means `and` with a space on each side, and `&`
 means `&` with a space on each side.
 
-| Strategy           | Used when the text                                                                                                                                           | Splits on                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `semicolon`        | contains `;`                                                                                                                                                 | `;`                                                                                        |
-| `period-delimited` | has neither the word `and` nor `&`, and has two or more words of three or more letters followed by a period and then a capital letter or the end of the text | a period and the whitespace after it, when the period ends a word of three or more letters |
-| `comma-and`        | contains a comma and either `, and ` or `, & `                                                                                                               | commas, then the word `and` or `&` inside a piece                                          |
-| `and`              | contains the word `and` or `&`                                                                                                                               | the word `and` or `&`                                                                      |
-| `comma`            | contains `,`                                                                                                                                                 | commas, with the exceptions below                                                          |
-| `single`           | any other text                                                                                                                                               | nothing                                                                                    |
+| Strategy                  | Used when the text                                                                                                                                           | Splits on                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `SemicolonStrategy`       | contains `;`                                                                                                                                                 | `;`                                                                                        |
+| `PeriodDelimitedStrategy` | has neither the word `and` nor `&`, and has two or more words of three or more letters followed by a period and then a capital letter or the end of the text | a period and the whitespace after it, when the period ends a word of three or more letters |
+| `CommaAndStrategy`        | contains a comma and either `, and ` or `, & `                                                                                                               | commas, then the word `and` or `&` inside a piece                                          |
+| `AndStrategy`             | contains the word `and` or `&`                                                                                                                               | the word `and` or `&`                                                                      |
+| `CommaStrategy`           | contains `,`                                                                                                                                                 | commas, with the exceptions below                                                          |
 
 Examples: `Составитель - Иванов. Иллюстрации - Петров.` is read by
-`period-delimited` as two names (`Иванов`, `Петров`) after the transforms. A
-name with initials, such as `Иванов И. Петров П.`, has no word of three or more
-letters before a period, so it is not read by that strategy.
+`PeriodDelimitedStrategy` as two names (`Иванов`, `Петров`) after the
+transforms. A name with initials, such as `Иванов И. Петров П.`, has no word of
+three or more letters before a period, so it is not read by that strategy.
 
-The `comma` strategy keeps a `Last, First` pair together and splits otherwise:
+`CommaStrategy` keeps a `Last, First` pair together and splits otherwise:
 
 - Two parts are kept as one name when the first has at most three words and the
   second at most two. The transforms then reverse it.
@@ -62,7 +61,7 @@ The `comma` strategy keeps a `Last, First` pair together and splits otherwise:
 ## Transforms
 
 [`transforms.ts`](../src/parsers/authors/transforms.ts) lists the transforms in
-`ALL_TRANSFORMS`. Each takes a name and returns a name. They run in this order:
+`TRANSFORMS`. Each takes a name and returns a name. They run in this order:
 
 | Transform              | Effect                                                                                                                                                                                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -92,11 +91,10 @@ role.
 ## Add a name format
 
 1. Add a strategy to `strategies.ts` with `detect()` and `split()`, and insert
-   it in `ALL_STRATEGIES` at the position that gives it the priority it needs. A
+   it in `STRATEGIES` at the position that gives it the priority it needs. A
    strategy placed above another takes the strings both detect.
 2. Add a case to
    [`tests/author-parser.test.ts`](../tests/author-parser.test.ts).
 3. Run `bun test`.
 
-Add a transform the same way in `transforms.ts`, at its place in
-`ALL_TRANSFORMS`.
+Add a transform the same way in `transforms.ts`, at its place in `TRANSFORMS`.
