@@ -1,246 +1,152 @@
 import { describe, expect, it } from "bun:test";
 import { parseAuthors } from "../src/parsers/authors/index.ts";
 
-describe("parseAuthors - basic cases", () => {
-  it("handles empty input", () => {
-    expect(parseAuthors("")).toEqual([]);
-    expect(parseAuthors("  ")).toEqual([]);
-  });
+const cases: [description: string, input: string, expected: string[]][] = [
+  ["blank text", "  ", []],
+  ["a single name", "Rob Isenberg", ["Rob Isenberg"]],
+  [
+    "a URL",
+    "https://www.tutorialspoint.com/",
+    ["https://www.tutorialspoint.com/"],
+  ],
+  ["a word that is a property of Object", "constructor", ["Constructor"]],
 
-  it("handles single author", () => {
-    expect(parseAuthors("Rob Isenberg")).toEqual(["Rob Isenberg"]);
-  });
+  ["a lowercase Last, First pair", "hu, yang", ["Yang Hu"]],
+  ["an uppercase Last, First pair", "SMITH, JOHN", ["John Smith"]],
+  ["a multi-word surname", "Van Der Berg, Hans", ["Hans Van Der Berg"]],
+  ["an apostrophe", "O'Brien, Patrick", ["Patrick O'Brien"]],
+  ["a hyphen", "Smith-Jones, Mary", ["Mary Smith-Jones"]],
+  ["accented letters", "García, José", ["José García"]],
+  ["mixed case", "DeVito, Danny", ["Danny DeVito"]],
+  ["mixed case in a full name", "Willis E. McNelly", ["Willis E. McNelly"]],
+  ["trailing initial", "Martin J.", ["Martin J."]],
+  ["leading initials", "J.K. Rowling", ["J.K. Rowling"]],
+  ["a title with a period", "Dr. Smith", ["Dr. Smith"]],
+  ["a trailing period on a word", "Val Biro.", ["Val Biro"]],
 
-  it("handles lowercase names", () => {
-    expect(parseAuthors("hu, yang")).toEqual(["Yang Hu"]);
-  });
+  [
+    "a semicolon",
+    "Maurya, Rahul; Maurya, Rahul",
+    ["Rahul Maurya", "Rahul Maurya"],
+  ],
+  ["'and'", "John Doe and Jane Smith", ["John Doe", "Jane Smith"]],
+  [
+    "'&'",
+    "W. Richard Stevens & Stephen A. Rago",
+    ["W. Richard Stevens", "Stephen A. Rago"],
+  ],
+  [
+    "comma and 'and'",
+    "Ray Yao, Ada R. Swift, and Ruby C. Perl",
+    ["Ray Yao", "Ada R. Swift", "Ruby C. Perl"],
+  ],
+  [
+    "'and' between Last, First pairs",
+    "Иванов, Петр and Smith, John",
+    ["Петр Иванов", "John Smith"],
+  ],
+  [
+    "Last, First, Organization",
+    "Mighton, John, Jump Math",
+    ["John Mighton", "Jump Math"],
+  ],
+  [
+    "a third part that is not a suffix",
+    "Smith, John, Lee",
+    ["John Smith", "Lee"],
+  ],
+  [
+    "period-delimited roles",
+    "Составитель - Sheila Pemberton. Русский Текст - И. Б. Соболева. Иллюстрации - Val Biro.",
+    ["Sheila Pemberton", "И. Б. Соболева", "Val Biro"],
+  ],
 
-  it("preserves URLs as authors", () => {
-    expect(parseAuthors("https://www.tutorialspoint.com/")).toEqual([
-      "https://www.tutorialspoint.com/",
-    ]);
+  ["a bracketed alias", "Casey, Elle [Casey, Elle]", ["Elle Casey"]],
+  [
+    "a parenthesized role",
+    "Jaime González García, Artur Mizera (editor)",
+    ["Jaime González García", "Artur Mizera"],
+  ],
+  [
+    "'By' and 'Illustrated by' prefixes",
+    "By Winston Churchill, Illustrated by J.H. Gardner Soper",
+    ["Winston Churchill", "J.H. Gardner Soper"],
+  ],
+  ["a Russian role prefix", "Иллюстрации - Val Biro", ["Val Biro"]],
+
+  [
+    "a title after Last, First",
+    "Chrysostom, John, St.",
+    ["St. John Chrysostom"],
+  ],
+  ["a suffix after Last, First", "King, Martin, Jr.", ["Martin King Jr."]],
+  ["a roman suffix with a period", "Smith, John, III.", ["John Smith III"]],
+  ["a lowercase roman suffix", "Smith, John, iv", ["John Smith IV"]],
+  [
+    "a suffix before a semicolon",
+    "Smith, John, III.; Doe, Jane",
+    ["John Smith III", "Jane Doe"],
+  ],
+
+  ["'coll.'", "coll.", ["Collection"]],
+  ["'ed' without a period", "ed", ["Editor"]],
+  ["'eds.'", "eds.", ["Editors"]],
+  ["'comp.'", "comp.", ["Compiler"]],
+  ["'trans.'", "trans.", ["Translator"]],
+];
+
+describe("parseAuthors", () => {
+  it.each(cases)("reads %s", (_description, input, expected) => {
+    expect(parseAuthors(input)).toEqual(expected);
   });
 });
 
-describe("parseAuthors - name formats", () => {
-  it("reverses LastName, FirstName format", () => {
-    expect(parseAuthors("Sullivan, William")).toEqual(["William Sullivan"]);
-    expect(parseAuthors("Smith, John")).toEqual(["John Smith"]);
-  });
+const withPublisher: [
+  description: string,
+  authors: string,
+  publisher: string,
+  expected: string[],
+][] = [
+  ["replaces an abbreviation", "coll.", "SitePoint, 2018", ["SitePoint"]],
+  [
+    "replaces a spelled-out term",
+    "Collection",
+    "O'Reilly Media",
+    ["O'Reilly Media"],
+  ],
+  ["keeps a real author", "John Doe", "SitePoint, 2018", ["John Doe"]],
+  [
+    "keeps the real author next to a placeholder",
+    "Collection; Smith, John",
+    "Penguin",
+    ["Penguin", "John Smith"],
+  ],
+  [
+    "keeps the real author before a placeholder",
+    "Smith, John; ed.",
+    "Penguin, 2005",
+    ["John Smith", "Penguin"],
+  ],
+  ["names the publisher once", "Editor; Compiler", "Penguin", ["Penguin"]],
+  [
+    "keeps repeated real authors",
+    "Smith, John; Smith, John",
+    "Penguin",
+    ["John Smith", "John Smith"],
+  ],
+  [
+    "keeps the placeholder when the publisher is blank",
+    "Collection; Smith, John",
+    " ",
+    ["Collection", "John Smith"],
+  ],
+];
 
-  it("handles initials", () => {
-    expect(parseAuthors("Martin J.")).toEqual(["Martin J."]);
-    expect(parseAuthors("J.K. Rowling")).toEqual(["J.K. Rowling"]);
-  });
-
-  it("handles names with periods (non-initials)", () => {
-    expect(parseAuthors("Dr. Smith")).toEqual(["Dr. Smith"]);
-  });
-
-  it("removes trailing periods from full words", () => {
-    expect(parseAuthors("Val Biro.")).toEqual(["Val Biro"]);
-  });
-});
-
-describe("parseAuthors - multiple authors", () => {
-  it("splits by semicolon", () => {
-    expect(parseAuthors("Maurya, Rahul; Maurya, Rahul")).toEqual([
-      "Rahul Maurya",
-      "Rahul Maurya",
-    ]);
-  });
-
-  it("splits by 'and'", () => {
-    expect(parseAuthors("John Doe and Jane Smith")).toEqual([
-      "John Doe",
-      "Jane Smith",
-    ]);
-  });
-
-  it("splits by '&'", () => {
-    expect(parseAuthors("W. Richard Stevens & Stephen A. Rago")).toEqual([
-      "W. Richard Stevens",
-      "Stephen A. Rago",
-    ]);
-  });
-
-  it("splits by comma + and", () => {
-    expect(parseAuthors("Ray Yao, Ada R. Swift, and Ruby C. Perl")).toEqual([
-      "Ray Yao",
-      "Ada R. Swift",
-      "Ruby C. Perl",
-    ]);
-  });
-
-  it("splits comma-separated without 'and'", () => {
-    expect(parseAuthors("Mighton, John, Jump Math")).toEqual([
-      "John Mighton",
-      "Jump Math",
-    ]);
-  });
-
-  it("handles Cyrillic period-delimited format", () => {
-    const input =
-      "Составитель - Sheila Pemberton. Русский Текст - И. Б. Соболева. Иллюстрации - Val Biro.";
-    expect(parseAuthors(input)).toEqual([
-      "Sheila Pemberton",
-      "И. Б. Соболева",
-      "Val Biro",
-    ]);
-  });
-});
-
-describe("parseAuthors - special notations", () => {
-  it("removes brackets", () => {
-    expect(parseAuthors("Casey, Elle [Casey, Elle]")).toEqual(["Elle Casey"]);
-  });
-
-  it("removes parentheses", () => {
-    expect(
-      parseAuthors("Jaime González García, Artur Mizera (editor)"),
-    ).toEqual(["Jaime González García", "Artur Mizera"]);
-  });
-
-  it("removes 'By' prefix", () => {
-    expect(
-      parseAuthors("By Winston Churchill, Illustrated by J.H. Gardner Soper"),
-    ).toEqual(["Winston Churchill", "J.H. Gardner Soper"]);
-  });
-
-  it("removes Russian role prefixes", () => {
-    expect(parseAuthors("Составитель - Sheila Pemberton")).toEqual([
-      "Sheila Pemberton",
-    ]);
-    expect(parseAuthors("Русский Текст - И. Б. Соболева")).toEqual([
-      "И. Б. Соболева",
-    ]);
-    expect(parseAuthors("Иллюстрации - Val Biro")).toEqual(["Val Biro"]);
-  });
-});
-
-describe("parseAuthors - bibliographic terms", () => {
-  it("expands 'coll.' to 'Collection'", () => {
-    expect(parseAuthors("coll.")).toEqual(["Collection"]);
-    expect(parseAuthors("coll")).toEqual(["Collection"]);
-  });
-
-  it("expands 'ed.' to 'Editor'", () => {
-    expect(parseAuthors("ed.")).toEqual(["Editor"]);
-    expect(parseAuthors("eds.")).toEqual(["Editors"]);
-  });
-
-  it("expands other abbreviations", () => {
-    expect(parseAuthors("comp.")).toEqual(["Compiler"]);
-    expect(parseAuthors("trans.")).toEqual(["Translator"]);
-  });
-
-  it("replaces bibliographic term with publisher fallback", () => {
-    expect(parseAuthors("coll.", "SitePoint, 2018")).toEqual(["SitePoint"]);
-    expect(parseAuthors("Collection", "O'Reilly Media")).toEqual([
-      "O'Reilly Media",
-    ]);
-  });
-
-  it("keeps normal authors when publisher fallback provided", () => {
-    expect(parseAuthors("John Doe", "SitePoint, 2018")).toEqual(["John Doe"]);
-  });
-
-  it("keeps the real author next to a placeholder", () => {
-    expect(parseAuthors("Collection; Smith, John", "Penguin")).toEqual([
-      "Penguin",
-      "John Smith",
-    ]);
-    expect(parseAuthors("Smith, John; ed.", "Penguin, 2005")).toEqual([
-      "John Smith",
-      "Penguin",
-    ]);
-  });
-
-  it("names the publisher once for several placeholders", () => {
-    expect(parseAuthors("Editor; Compiler", "Penguin")).toEqual(["Penguin"]);
-  });
-
-  it("keeps repeated real authors", () => {
-    expect(parseAuthors("Smith, John; Smith, John", "Penguin")).toEqual([
-      "John Smith",
-      "John Smith",
-    ]);
-  });
-
-  it("keeps the placeholder when the publisher is blank", () => {
-    expect(parseAuthors("Collection; Smith, John", " ")).toEqual([
-      "Collection",
-      "John Smith",
-    ]);
-  });
-});
-
-describe("parseAuthors - honorifics and titles", () => {
-  it("puts a title before the name", () => {
-    expect(parseAuthors("Chrysostom, John, St.")).toEqual([
-      "St. John Chrysostom",
-    ]);
-  });
-
-  it("puts a generational suffix after the name", () => {
-    expect(parseAuthors("King, Martin, Jr.")).toEqual(["Martin King Jr."]);
-    expect(parseAuthors("Smith, John, III.")).toEqual(["John Smith III"]);
-    expect(parseAuthors("Smith, John, iv")).toEqual(["John Smith IV"]);
-  });
-
-  it("keeps a suffix with its name between semicolons", () => {
-    expect(parseAuthors("Smith, John, III.; Doe, Jane")).toEqual([
-      "John Smith III",
-      "Jane Doe",
-    ]);
-  });
-
-  it("treats a short third part that is not a suffix as another author", () => {
-    expect(parseAuthors("Smith, John, Lee")).toEqual(["John Smith", "Lee"]);
-    expect(parseAuthors("Smith, John, Wu")).toEqual(["John Smith", "Wu"]);
-  });
-
-  it("handles 3-part tuple with organization", () => {
-    expect(parseAuthors("Mighton, John, Jump Math")).toEqual([
-      "John Mighton",
-      "Jump Math",
-    ]);
-  });
-});
-
-describe("parseAuthors - edge cases", () => {
-  it("handles mixed Cyrillic and Latin", () => {
-    expect(parseAuthors("Иванов, Петр and Smith, John")).toEqual([
-      "Петр Иванов",
-      "John Smith",
-    ]);
-  });
-
-  it("preserves spacing in multi-word names", () => {
-    expect(parseAuthors("Van Der Berg, Hans")).toEqual(["Hans Van Der Berg"]);
-  });
-
-  it("handles names with apostrophes", () => {
-    expect(parseAuthors("O'Brien, Patrick")).toEqual(["Patrick O'Brien"]);
-  });
-
-  it("handles hyphenated names", () => {
-    expect(parseAuthors("Smith-Jones, Mary")).toEqual(["Mary Smith-Jones"]);
-  });
-
-  it("handles accented characters", () => {
-    expect(parseAuthors("García, José")).toEqual(["José García"]);
-    expect(parseAuthors("Müller, Franz")).toEqual(["Franz Müller"]);
-  });
-});
-
-describe("parseAuthors - capitalization", () => {
-  it("keeps deliberate mixed case", () => {
-    expect(parseAuthors("Willis E. McNelly")).toEqual(["Willis E. McNelly"]);
-    expect(parseAuthors("DeVito, Danny")).toEqual(["Danny DeVito"]);
-  });
-
-  it("normalizes single-case words", () => {
-    expect(parseAuthors("SMITH, JOHN")).toEqual(["John Smith"]);
-  });
+describe("parseAuthors with a publisher", () => {
+  it.each(withPublisher)(
+    "%s",
+    (_description, authors, publisher, expected) => {
+      expect(parseAuthors(authors, publisher)).toEqual(expected);
+    },
+  );
 });

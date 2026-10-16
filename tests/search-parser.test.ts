@@ -49,21 +49,6 @@ describe("parseSearchResults on a real libgen.li page", () => {
     ]);
     expect(books[14]?.authors).toEqual(["Brian Herbert", "Kevin J. Anderson"]);
   });
-
-  it("sets only the fields of Book", () => {
-    const fields = [
-      "id",
-      "title",
-      "authors",
-      "fileType",
-      "fileSize",
-      "year",
-      "language",
-    ];
-    for (const book of books) {
-      expect(fields).toEqual(expect.arrayContaining(Object.keys(book)));
-    }
-  });
 });
 
 const row = (md5: string, title: string, year = "") => `

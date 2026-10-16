@@ -64,30 +64,6 @@ describe("searchBooks", () => {
     }
   });
 
-  it("throws TypeError on an empty query", async () => {
-    await expect(searchBooks("")).rejects.toThrow(TypeError);
-    await expect(searchBooks("  ")).rejects.toThrow(TypeError);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("throws LibraryFetchError with the HTTP status", async () => {
-    respond = () => new Response("unavailable", { status: 503 });
-
-    const error = await searchBooks("dune").catch((err: unknown) => err);
-    expect(error).toBeInstanceOf(LibraryFetchError);
-    expect((error as LibraryFetchError).statusCode).toBe(503);
-  });
-
-  it("throws LibraryFetchError with status 0 on network failure", async () => {
-    respond = () => {
-      throw new TypeError("fetch failed");
-    };
-
-    const error = await searchBooks("dune").catch((err: unknown) => err);
-    expect(error).toBeInstanceOf(LibraryFetchError);
-    expect((error as LibraryFetchError).statusCode).toBe(0);
-    expect((error as LibraryFetchError).message).toBe("fetch failed");
-  });
 });
 
 describe("getDownloadUrls", () => {
@@ -140,28 +116,43 @@ describe("getDownloadUrls", () => {
     expect(await getDownloadUrls(md5)).toEqual({ libgenMirrors: [] });
   });
 
-  it("throws TypeError on an empty id", async () => {
-    await expect(getDownloadUrls("")).rejects.toThrow(TypeError);
-    await expect(getDownloadUrls("  ")).rejects.toThrow(TypeError);
-    expect(fetchMock).not.toHaveBeenCalled();
+});
+
+describe.each([
+  ["searchBooks", () => searchBooks("dune")],
+  [
+    "getDownloadUrls",
+    () => getDownloadUrls("840e6f0826109b93b4355dadd04240ee"),
+  ],
+])("%s failures", (_name, call) => {
+  it("throws LibraryFetchError with the HTTP status", async () => {
+    respond = () => new Response("unavailable", { status: 503 });
+
+    const error = await call().catch((err: unknown) => err);
+    expect(error).toBeInstanceOf(LibraryFetchError);
+    expect((error as LibraryFetchError).name).toBe("LibraryFetchError");
+    expect((error as LibraryFetchError).statusCode).toBe(503);
   });
 
-  it("throws LibraryFetchError with the HTTP status", async () => {
-    respond = () => new Response("forbidden", { status: 403 });
+  it("throws LibraryFetchError with status 0 on network failure", async () => {
+    respond = () => {
+      throw new TypeError("fetch failed");
+    };
 
-    const error = await getDownloadUrls(md5).catch((err: unknown) => err);
+    const error = await call().catch((err: unknown) => err);
     expect(error).toBeInstanceOf(LibraryFetchError);
-    expect((error as LibraryFetchError).statusCode).toBe(403);
+    expect((error as LibraryFetchError).statusCode).toBe(0);
+    expect((error as LibraryFetchError).message).toBe("fetch failed");
   });
 });
 
-describe("LibraryFetchError", () => {
-  it("carries a message, name and status code", () => {
-    const error = new LibraryFetchError("Test error", 404);
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error.message).toBe("Test error");
-    expect(error.statusCode).toBe(404);
-    expect(error.name).toBe("LibraryFetchError");
+describe.each([
+  ["searchBooks", searchBooks],
+  ["getDownloadUrls", getDownloadUrls],
+])("%s with an empty argument", (_name, call) => {
+  it("throws TypeError and sends no request", async () => {
+    await expect(call("")).rejects.toThrow(TypeError);
+    await expect(call("  ")).rejects.toThrow(TypeError);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
