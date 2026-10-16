@@ -1,5 +1,4 @@
 export interface AuthorSplitStrategy {
-  name: string;
   detect: (text: string) => boolean;
   split: (text: string) => string[];
 }
