@@ -9,7 +9,6 @@ export async function getDownloadUrls(bookId: string): Promise<DownloadUrls> {
 
   const md5 = encodeURIComponent(bookId.trim());
   const fileUrl = `${LIBGEN_BASE}/file.php?md5=${md5}`;
-  // The get.php key on this page expires, so it is fetched on every call.
   const adsUrl = `${LIBGEN_BASE}/ads.php?md5=${md5}`;
 
   const [fileHtml, adsHtml] = await Promise.all([

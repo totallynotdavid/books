@@ -7,7 +7,7 @@ export async function searchBooks(query: string): Promise<Book[]> {
     throw new TypeError("Query cannot be empty");
   }
 
-  // Title column, files view, LibGen (non-fiction/fiction) topic, 25 per page.
+  // columns[]=t: title column. objects[]=f: files view. topics[]=l: Libgen topic.
   const params = new URLSearchParams({
     req: query,
     "columns[]": "t",
