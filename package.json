@@ -7,36 +7,31 @@
     "downloader",
     "libgen"
   ],
+  "bugs": {
+    "url": "https://github.com/totallynotdavid/books/issues"
+  },
   "license": "MIT",
   "author": "David Duran <dadch1404@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/totallynotdavid/books.git"
   },
-  "bugs": {
-    "url": "https://github.com/totallynotdavid/books/issues"
-  },
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "readme.md",
     "LICENSE"
   ],
-  "scripts": {
-    "clean": "bun x shx rm -rf dist",
-    "check": "biome check . && bun x prettier \"**/*.{md,yml}\" --check --print-width=80 --prose-wrap=always",
-    "build": "bun run check && bun x bunup --minify",
-    "test": "bun test",
-    "prepublishOnly": "bun run clean && bun run build"
-  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "dependencies": {
     "cheerio": "^1.2.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
     "@types/bun": "^1.4.3",
     "bunup": "^0.16.32",
-    "shx": "^0.4.0"
+    "oxfmt": "^0.73.0",
+    "typescript": "^7.0.2"
   }
 }
