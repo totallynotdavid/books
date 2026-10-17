@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["ESNext"],
+    "types": ["bun"],
     "target": "ESNext",
     "module": "Preserve",
     "useDefineForClassFields": true,
@@ -28,6 +29,6 @@
     "allowUnreachableCode": false,
 
     "skipLibCheck": true,
-    "erasableSyntaxOnly": true,
+    "erasableSyntaxOnly": true
   }
 }
