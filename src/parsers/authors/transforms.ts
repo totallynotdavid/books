@@ -11,7 +11,10 @@ const removeParentheses: AuthorTransform = (text) => {
 const removePrefixes: AuthorTransform = (text) => {
   let cleaned = text;
   cleaned = cleaned.replace(/^(By|Illustrated\s+By)\s+/i, "");
-  cleaned = cleaned.replace(/^(Составитель\s*-|Русский\sТекст\s*-|Иллюстрации\s*-)\s*/i, "");
+  cleaned = cleaned.replace(
+    /^(Составитель\s*-|Русский\sТекст\s*-|Иллюстрации\s*-)\s*/i,
+    "",
+  );
   return cleaned.trim();
 };
 
@@ -75,7 +78,11 @@ const capitalizeWords: AuthorTransform = (text) => {
   const words = text.split(/\s+/);
   return words
     .map((word, index) => {
-      if (index > 0 && index === words.length - 1 && /^(?:ii|iii|iv)$/i.test(word)) {
+      if (
+        index > 0 &&
+        index === words.length - 1 &&
+        /^(?:ii|iii|iv)$/i.test(word)
+      ) {
         return word.toUpperCase();
       }
       if (!word || word.includes(".")) return word;

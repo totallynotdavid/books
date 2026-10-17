@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import type { Mock } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { LibraryFetchError, getDownloadUrls, searchBooks } from "../src/index.ts";
+import {
+  LibraryFetchError,
+  getDownloadUrls,
+  searchBooks,
+} from "../src/index.ts";
 
 const fixture = (name: string) =>
   readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
@@ -63,7 +67,6 @@ describe("searchBooks", () => {
       expect(url.hostname).toBe("libgen.li");
     }
   });
-
 });
 
 describe("getDownloadUrls", () => {
@@ -86,7 +89,9 @@ describe("getDownloadUrls", () => {
     respond = (url) => {
       if (url.pathname !== "/ads.php") return new Response("");
       key += 1;
-      return new Response(`<a href="get.php?md5=${md5}&amp;key=K${key}">GET</a>`);
+      return new Response(
+        `<a href="get.php?md5=${md5}&amp;key=K${key}">GET</a>`,
+      );
     };
 
     const first = await getDownloadUrls(md5);
@@ -115,7 +120,6 @@ describe("getDownloadUrls", () => {
 
     expect(await getDownloadUrls(md5)).toEqual({ libgenMirrors: [] });
   });
-
 });
 
 describe.each([

@@ -81,7 +81,9 @@ describe("parseSearchResults edge cases", () => {
     const books = parseSearchResults(
       table(row(md5, "Dune") + row(md5.toUpperCase(), "Dune again")),
     );
-    expect(books).toEqual([{ id: md5, title: "Dune", authors: ["Frank Herbert"] }]);
+    expect(books).toEqual([
+      { id: md5, title: "Dune", authors: ["Frank Herbert"] },
+    ]);
   });
 
   it("does not assign empty optional fields", () => {

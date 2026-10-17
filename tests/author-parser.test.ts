@@ -143,10 +143,7 @@ const withPublisher: [
 ];
 
 describe("parseAuthors with a publisher", () => {
-  it.each(withPublisher)(
-    "%s",
-    (_description, authors, publisher, expected) => {
-      expect(parseAuthors(authors, publisher)).toEqual(expected);
-    },
-  );
+  it.each(withPublisher)("%s", (_description, authors, publisher, expected) => {
+    expect(parseAuthors(authors, publisher)).toEqual(expected);
+  });
 });

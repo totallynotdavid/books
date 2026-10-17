@@ -45,7 +45,10 @@ describe("parseGetPhpUrl", () => {
       "https://libgen.li/get.php?md5=a&key=K",
     );
     expect(
-      parseGetPhpUrl('<a href="https://cdn.example/get.php?md5=a&key=K">', adsUrl),
+      parseGetPhpUrl(
+        '<a href="https://cdn.example/get.php?md5=a&key=K">',
+        adsUrl,
+      ),
     ).toBe("https://cdn.example/get.php?md5=a&key=K");
   });
 

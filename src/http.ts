@@ -2,7 +2,8 @@ import { LibraryFetchError } from "./errors.ts";
 
 export const LIBGEN_BASE = "https://libgen.li";
 
-const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+const USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const TIMEOUT_MS = 30_000;
 
 export async function fetchHtml(url: string): Promise<string> {

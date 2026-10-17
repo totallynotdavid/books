@@ -3,13 +3,18 @@ import type { AuthorSplitStrategy } from "./types.ts";
 
 const SemicolonStrategy: AuthorSplitStrategy = {
   detect: (text) => text.includes(";"),
-  split: (text) => text.split(";").map((s) => s.trim()).filter(Boolean),
+  split: (text) =>
+    text
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean),
 };
 
 const PeriodDelimitedStrategy: AuthorSplitStrategy = {
   detect: (text) => {
     if (text.includes(" & ") || text.includes(" and ")) return false;
-    const matches = text.match(/[a-zа-яёA-ZА-ЯЁ]{3,}\.\s*(?=[A-ZА-ЯЁ]|$)/g) || [];
+    const matches =
+      text.match(/[a-zа-яёA-ZА-ЯЁ]{3,}\.\s*(?=[A-ZА-ЯЁ]|$)/g) || [];
     return matches.length >= 2;
   },
   split: (text) => {
@@ -19,7 +24,8 @@ const PeriodDelimitedStrategy: AuthorSplitStrategy = {
 };
 
 const CommaAndStrategy: AuthorSplitStrategy = {
-  detect: (text) => text.includes(",") && (text.includes(", and ") || text.includes(", & ")),
+  detect: (text) =>
+    text.includes(",") && (text.includes(", and ") || text.includes(", & ")),
   split: (text) => {
     return text
       .split(",")
