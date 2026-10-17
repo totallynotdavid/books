@@ -14,22 +14,24 @@ The repository pins its tools in [mise.toml](../mise.toml). With
 git clone https://github.com/totallynotdavid/books
 cd books
 mise install
-bun install
+mise run install
 ```
 
 ## Commands
 
-| Command         | Effect                                                                                                         |
-| --------------- | -------------------------------------------------------------------------------------------------------------- |
-| `bun test`      | Runs all tests.                                                                                                |
-| `bun run check` | Lints with Biome, then checks that every `.md` and `.yml` file is formatted with Prettier. It changes no file. |
-| `bun run build` | Runs `check`, then bundles `src/index.ts` into `dist/` with bunup.                                             |
+Every command is a mise task, defined in [mise.toml](../mise.toml).
 
-When `check` reports an unformatted file, format the documents with:
+| Command              | Effect                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| `mise run install`   | Installs the dependencies from `bun.lock`.                                                  |
+| `mise run lint`      | Lints and checks formatting: Biome for code, oxfmt for `.md`, `.yml` and `.json`.           |
+| `mise run fix`       | Applies the safe Biome fixes and formats the code, `.md`, `.yml` and `.json` files.         |
+| `mise run typecheck` | Type-checks with `tsc`.                                                                     |
+| `mise run test`      | Runs all tests.                                                                             |
+| `mise run build`     | Bundles `src/index.ts` into `dist/` with bunup.                                             |
+| `mise run check`     | Runs `lint`, `typecheck`, `test` and `build`. It does not modify tracked files. CI runs it. |
 
-```sh
-bun x prettier "**/*.{md,yml}" --write --print-width=80 --prose-wrap=always
-```
+When `lint` reports a problem, run `mise run fix`, then fix what it leaves.
 
 ## Tests
 

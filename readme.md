@@ -1,7 +1,6 @@
 # @totallynotdavid/books
 
 [![NPM Version](https://img.shields.io/npm/v/@totallynotdavid/books?logo=npm&logoColor=212121&label=version&labelColor=ffc44e&color=212121)](https://www.npmjs.com/package/@totallynotdavid/books)
-[![codecov](https://codecov.io/gh/totallynotdavid/books/graph/badge.svg?token=8OBBAZG8MN)](https://codecov.io/gh/totallynotdavid/books)
 
 A TypeScript library for Node.js and Bun that searches
 [Library Genesis](https://libgen.li) by title and returns download links. It
