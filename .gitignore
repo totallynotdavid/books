@@ -4,3 +4,8 @@ dist
 
 # extensions
 *.ps1
+
+# secrets
+.env
+.env.*
+!.env.example
