@@ -1,29 +1,61 @@
 name: release
 
+# A tag publishes. A pull request or a manual run does everything except the
+# upload steps, so a release that would fail fails before the tag.
 on:
   push:
     tags:
       - "v*"
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  publish:
+  preflight:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'totallynotdavid' }}
-
-    environment:
-      name: publishing
 
     permissions:
-      id-token: write
+      actions: read
+      deployments: read
       contents: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check every environment named in this workflow exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          environments=$(yq '.jobs[].environment | select(. != null) | (.name // .)' .github/workflows/release.yml)
+          for environment in ${environments}; do
+            if ! gh api "repos/${GITHUB_REPOSITORY}/environments/${environment}" --silent; then
+              echo "Environment '${environment}' does not exist in ${GITHUB_REPOSITORY}. Create it in Settings, Environments." >&2
+              exit 1
+            fi
+          done
+
+      - name: Check the package exists on npm
+        run: |
+          name=$(jq -r .name package.json)
+          if ! npm view "${name}" name --registry https://registry.npmjs.org; then
+            echo "${name} is not on npm. Publish the first version by hand and set up the trusted publisher, see .github/releasing.md." >&2
+            exit 1
+          fi
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check the tag matches package.json
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           version=$(jq -r .version package.json)
           if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
@@ -47,17 +79,68 @@ jobs:
 
       - run: bun run build
 
-      - run: npm publish
+      - name: Pack the package
+        run: |
+          mkdir package
+          npm pack --pack-destination package
+
+      - name: Install the package and import it
+        run: |
+          name=$(jq -r .name package.json)
+          mkdir "${RUNNER_TEMP}/consumer"
+          cd "${RUNNER_TEMP}/consumer"
+          npm init -y > /dev/null
+          npm install "${GITHUB_WORKSPACE}"/package/*.tgz
+          node --input-type=module -e "const m = await import(process.argv[1]); console.log(Object.keys(m).sort().join(' ')); if (typeof m.searchBooks !== 'function') process.exit(1)" "${name}"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: package
+          path: package/*.tgz
+          if-no-files-found: error
+
+  publish:
+    needs: [preflight, build]
+    runs-on: ubuntu-latest
+    if:
+      ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner ==
+      'totallynotdavid' }}
+
+    environment:
+      name: publishing
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
+        with:
+          install_args: node
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: package
+
+      - run: npm publish package/*.tgz
 
   github:
     needs: publish
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
 
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
