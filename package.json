@@ -24,6 +24,14 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bunup --minify",
+    "check": "bun run lint && bun run typecheck && bun run test && bun run build",
+    "fix": "biome check --write . && oxfmt '**/*.{md,yml,json}'",
+    "lint": "biome check . && oxfmt --check '**/*.{md,yml,json}'",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
     "cheerio": "^1.2.0"
   },

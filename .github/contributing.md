@@ -14,24 +14,23 @@ The repository pins its tools in [mise.toml](../mise.toml). With
 git clone https://github.com/totallynotdavid/books
 cd books
 mise install
-mise run install
+bun install --frozen-lockfile
 ```
 
 ## Commands
 
-Every command is a mise task, defined in [mise.toml](../mise.toml).
+Every command is a script in [package.json](../package.json).
 
-| Command              | Effect                                                                                      |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `mise run install`   | Installs the dependencies from `bun.lock`.                                                  |
-| `mise run lint`      | Lints and checks formatting: Biome for code, oxfmt for `.md`, `.yml` and `.json`.           |
-| `mise run fix`       | Applies the safe Biome fixes and formats the code, `.md`, `.yml` and `.json` files.         |
-| `mise run typecheck` | Type-checks with `tsc`.                                                                     |
-| `mise run test`      | Runs all tests.                                                                             |
-| `mise run build`     | Bundles `src/index.ts` into `dist/` with bunup.                                             |
-| `mise run check`     | Runs `lint`, `typecheck`, `test` and `build`. It does not modify tracked files. CI runs it. |
+| Command             | Effect                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| `bun run lint`      | Lints and checks formatting: Biome for code, oxfmt for `.md`, `.yml` and `.json`.           |
+| `bun run fix`       | Applies the safe Biome fixes and formats the code, `.md`, `.yml` and `.json` files.         |
+| `bun run typecheck` | Type-checks with `tsc`.                                                                     |
+| `bun run test`      | Runs all tests.                                                                             |
+| `bun run build`     | Bundles `src/index.ts` into `dist/` with bunup.                                             |
+| `bun run check`     | Runs `lint`, `typecheck`, `test` and `build`. It does not modify tracked files. CI runs it. |
 
-When `lint` reports a problem, run `mise run fix`, then fix what it leaves.
+When `lint` reports a problem, run `bun run fix`, then fix what it leaves.
 
 ## Tests
 

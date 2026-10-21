@@ -95,6 +95,6 @@ role.
    strategy placed above another takes the strings both detect.
 2. Add a case to
    [`tests/author-parser.test.ts`](../tests/author-parser.test.ts).
-3. Run `mise run test`.
+3. Run `bun run test`.
 
 Add a transform the same way in `transforms.ts`, at its place in `TRANSFORMS`.
