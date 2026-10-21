@@ -53,4 +53,5 @@ replaces the global `fetch` with a function that serves the fixtures, so it runs
 
 ## Submit a change
 
-Open a pull request against `master`.
+Open a pull request against `master`. Maintainers publish a version with the
+steps in [releasing](releasing.md).
