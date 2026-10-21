@@ -1,8 +1,13 @@
 # Releasing
 
 A push of a tag named `v*` runs [`release.yml`](workflows/release.yml). It
-checks the tag and the notes, publishes the package to npm, then creates the
-GitHub release. Nothing else publishes.
+checks the tag and the notes, builds and packs the package, publishes it to npm,
+then creates the GitHub release. Nothing else publishes.
+
+The same workflow runs on every pull request and on a manual run
+(`gh workflow run release.yml --ref <branch>`) as a dry run. It does every step
+except the upload steps. A release that would fail fails its pull request before
+merge.
 
 ## Set up once
 
@@ -15,7 +20,7 @@ A maintainer who forks the project does these steps with their own accounts.
    skipped for any other owner.
 3. In the repository, open Settings, Environments, and create an environment
    named `publishing`. Add required reviewers if you want an approval before
-   each publish.
+   each publish. If you limit deployment branches, allow the tag pattern `v*`.
 4. Publish the first version by hand so the package exists on npm: run
    `npm login`, then `bun run build`, then `npm publish --access public`.
 5. On npmjs.com, open the package, then Settings, then Trusted Publisher, and
@@ -40,7 +45,25 @@ from step 5 accepts. Do not add an `NPM_TOKEN` secret.
    snippet, known problems, and how to upgrade. GitHub appends its generated
    change list to it.
 4. Run `bun run check`. It lints, type-checks, tests and builds.
-5. Merge the change into `master`.
+5. Open a pull request. The `release` workflow runs as a dry run. Merge only
+   when it passes.
+6. Merge the change into `master`.
+
+## Dry run
+
+On a pull request or a manual run, the `release` workflow runs two jobs. Neither
+uploads to npm or GitHub.
+
+- `preflight` checks that every `environment:` named in the workflow exists in
+  the repository, using `gh api` and the job's `GITHUB_TOKEN`. It also checks
+  that the package exists on npm. Publishing uses OIDC, so the workflow holds no
+  npm token to check.
+- `build` fails when the first line of `.github/release-notes.md` is not
+  `<name> <version> is out.`. It then runs `bun install --frozen-lockfile` and
+  `bun run build`, packs the tarball with `npm pack`, installs the tarball into
+  an empty project, imports it, and stores it as the `package` artifact.
+
+The `publish` and `github` jobs are skipped.
 
 ## Publish
 
@@ -51,17 +74,16 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Replace `0.1.0` with the version in `package.json`. The `publish` job then:
+Replace `0.1.0` with the version in `package.json`. The workflow then runs:
 
-1. fails when the tag is not `v` plus the `package.json` version;
-2. fails when the first line of `.github/release-notes.md` is not
-   `<name> <version> is out.`;
-3. installs the tools, runs `bun install --frozen-lockfile` and `bun run build`;
-4. runs `npm publish`.
-
-The `github` job runs after `publish` succeeds. It creates the GitHub release
-for the tag. The body is `.github/release-notes.md` followed by the generated
-change list.
+1. `preflight`, as in the dry run;
+2. `build`, as in the dry run. It also fails first when the tag is not `v` plus
+   the `package.json` version;
+3. `publish`, which waits for the `publishing` environment, then runs
+   `npm publish` on the tarball that `build` packed;
+4. `github`, which runs after `publish` succeeds and creates the GitHub release
+   for the tag. The body is `.github/release-notes.md` followed by the generated
+   change list.
 
 A failed check stops the run before anything is published. Fix the file, delete
 the remote tag with `git push origin :refs/tags/v0.1.0` and the local tag with
