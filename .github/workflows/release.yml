@@ -127,7 +127,7 @@ jobs:
           name: package
           path: package
 
-      - run: npm publish package/*.tgz
+      - run: npm publish ./package/*.tgz
 
   publish-dry-run:
     needs: [preflight, build]
@@ -160,7 +160,7 @@ jobs:
           mkdir dry-run-package
           npm pack ./dry-run/package --pack-destination dry-run-package
 
-      - run: npm publish dry-run-package/*.tgz --dry-run --tag dry-run
+      - run: npm publish ./dry-run-package/*.tgz --dry-run --tag dry-run
 
   github:
     needs: publish
