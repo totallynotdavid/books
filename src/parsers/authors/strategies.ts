@@ -13,12 +13,20 @@ const SemicolonStrategy: AuthorSplitStrategy = {
 const PeriodDelimitedStrategy: AuthorSplitStrategy = {
   detect: (text) => {
     if (text.includes(" & ") || text.includes(" and ")) return false;
-    const matches =
-      text.match(/[a-zа-яёA-ZА-ЯЁ]{3,}\.\s*(?=[A-ZА-ЯЁ]|$)/g) || [];
+    const matches = [
+      ...text.matchAll(/([a-zа-яёA-ZА-ЯЁ]{3,})\.\s*(?=[A-ZА-ЯЁ]|$)/g),
+    ].filter((match) => !isNameTitle(match[1] ?? ""));
     return matches.length >= 2;
   },
   split: (text) => {
-    const parts = text.split(/(?<=[a-zа-яёA-ZА-ЯЁ]{3,})\.\s+/g);
+    const parts: string[] = [];
+    let start = 0;
+    for (const match of text.matchAll(/([a-zа-яёA-ZА-ЯЁ]{3,})\.\s+/g)) {
+      if (isNameTitle(match[1] ?? "")) continue;
+      parts.push(text.slice(start, match.index + (match[1]?.length ?? 0)));
+      start = match.index + match[0].length;
+    }
+    parts.push(text.slice(start));
     return parts.map((p) => p.trim()).filter(Boolean);
   },
 };
