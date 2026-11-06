@@ -56,12 +56,24 @@ const cases: [description: string, input: string, expected: string[]][] = [
     ["John Smith", "Lee"],
   ],
   [
+    "a title with a period before each name",
+    "Prof. Albert Einstein, Prof. Max Planck",
+    ["Prof. Albert Einstein", "Prof. Max Planck"],
+  ],
+  [
     "period-delimited roles",
     "Составитель - Sheila Pemberton. Русский Текст - И. Б. Соболева. Иллюстрации - Val Biro.",
     ["Sheila Pemberton", "И. Б. Соболева", "Val Biro"],
   ],
 
   ["a bracketed alias", "Casey, Elle [Casey, Elle]", ["Elle Casey"]],
+  [
+    "a bracketed note between two names",
+    "John Smith [ed.] and Jane Doe",
+    ["John Smith", "Jane Doe"],
+  ],
+  ["a bracketed note inside a name", "Smith [ed.] John", ["Smith John"]],
+  ["a parenthesized note inside a name", "John (Jack) Smith", ["John Smith"]],
   [
     "a parenthesized role",
     "Jaime González García, Artur Mizera (editor)",
