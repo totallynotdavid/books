@@ -1,11 +1,11 @@
 import type { AuthorTransform } from "./types.ts";
 
 export const removeBrackets: AuthorTransform = (text) => {
-  return text.replace(/\s*\[.*?\]\s*/g, "").trim();
+  return text.replace(/\s*\[.*?\]\s*/g, " ").trim();
 };
 
 const removeParentheses: AuthorTransform = (text) => {
-  return text.replace(/\s*\(.*?\)\s*/g, "").trim();
+  return text.replace(/\s*\(.*?\)\s*/g, " ").trim();
 };
 
 const removePrefixes: AuthorTransform = (text) => {
